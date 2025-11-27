@@ -1,9 +1,9 @@
 export default function TopBarbers() {
   const barbers = [
-    { name: "Thịnh Barber", rating: 4.9, image: "/barber1.jpg" },
-    { name: "Minh Pro", rating: 5.0, image: "/barber2.jpg" },
-    { name: "Khoa Master", rating: 4.8, image: "/barber3.jpg" },
-    { name: "Long Style", rating: 4.9, image: "/barber4.jpg" },
+    { name: "Thịnh Barber", rating: 5.0, image: "/barber4.png" },
+    { name: "Hoang Master", rating: 5.0, image: "/barber1.png" },
+    { name: "Huy Bro", rating: 4.8, image: "/barber2.png" },
+    { name: "Quoc Style", rating: 4.9, image: "/barber3.png" },
   ];
 
   return (
@@ -16,11 +16,11 @@ export default function TopBarbers() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {barbers.map((b) => (
             <div key={b.name} className="text-center group">
-              <div className="overflow-hidden rounded-full mb-4">
+              <div className="w-48 h-48 mx-auto overflow-hidden rounded-full mb-4">
                 <img
                   src={b.image}
                   alt={b.name}
-                  className="w-full h-64 object-cover group-hover:scale-110 transition"
+                  className="w-full h-full object-cover group-hover:scale-110 transition"
                 />
               </div>
               <h3 className="font-semibold text-lg">{b.name}</h3>

@@ -9,19 +9,19 @@ const banners = [
     title: "Cắt Tóc Nam Cao Cấp",
     subtitle: "Phong cách hiện đại – Đội ngũ thợ tay nghề cao",
     highlight: "Giảm 20% cho khách mới",
-    bg: "bg-[url('/banner1.jpg')]", // bạn thay ảnh thật sau
+    bg: "bg-[url('/1.png')]",
   },
   {
     title: "Thay Đổi Phong Cách",
     subtitle: "Từ cổ điển đến hiện đại – Chúng tôi làm được tất cả",
     highlight: "Combo Cắt + Gội + Massage chỉ 250k",
-    bg: "bg-[url('/banner2.jpg')]",
+    bg: "bg-[url('/2.png')]",
   },
   {
     title: "Nơi Tóc Đẹp Bắt Đầu",
     subtitle: "Hơn 5000+ khách hàng hài lòng mỗi tháng",
     highlight: "Đặt lịch ngay – Cắt là sướng!",
-    bg: "bg-[url('/banner3.jpg')]",
+    bg: "bg-[url('/3.png')]",
   },
 ];
 
@@ -77,7 +77,6 @@ export default function HeroBanner() {
         </motion.div>
       </div>
 
-      {/* Nút lướt thủ công */}
       <button
         onClick={prev}
         className="absolute left-4 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 p-3 rounded-full hover:bg-opacity-70 transition"

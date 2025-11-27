@@ -4,10 +4,11 @@ import { Link } from "react-router-dom";
 import { Phone, Scissors, Menu } from "lucide-react";
 import { useState } from "react";
 import { Button } from "../ui/button";
+import PhoneModal from "../booking/PhoneModal";
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
+  const [openPhoneModal, setOpenPhoneModal] = useState(false);
   return (
     <header className="bg-header text-white sticky top-0 z-50 shadow-lg">
       <div className="container mx-auto px-4">
@@ -46,8 +47,11 @@ export default function Header() {
               <span>090 303 9559</span>
             </div>
 
-            <Button className="hidden sm:flex">
-              <Link to="/booking">Đặt lịch ngay</Link>
+            <Button
+              className="hidden sm:flex text-lg px-8 py-6"
+              onClick={() => setOpenPhoneModal(true)}
+            >
+              Đặt lịch ngay
             </Button>
 
             {/* Mobile */}
@@ -98,6 +102,10 @@ export default function Header() {
             </nav>
           </div>
         )}
+        <PhoneModal
+          isOpen={openPhoneModal}
+          onClose={() => setOpenPhoneModal(false)}
+        />
       </div>
     </header>
   );
