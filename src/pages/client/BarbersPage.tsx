@@ -1,17 +1,9 @@
-// src/pages/BarbersPage.tsx
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { Scissors, Star, Calendar } from "lucide-react";
 import apiClient from "../../lib/apiClient";
-
-interface Barber {
-  _id: string;
-  name: string;
-  avatar?: string;
-  description?: string;
-  rating?: number;
-}
+import type { Barber } from "../../types";
 
 export default function BarbersPage() {
   const [barbers, setBarbers] = useState<Barber[]>([]);

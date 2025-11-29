@@ -26,7 +26,7 @@ export default function BookingSummaryCard({
         <div className="flex justify-between">
           <span>Dịch vụ</span>
           <span className="font-bold">
-            {data.services?.map((s: any) => s.name).join(", ") || "-"}
+            {data.services?.map((s) => s.name).join(", ") || "-"}
           </span>
         </div>
         <div className="flex justify-between">

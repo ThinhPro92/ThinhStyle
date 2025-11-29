@@ -5,6 +5,7 @@ import { Phone, Scissors, Menu } from "lucide-react";
 import { useState } from "react";
 import { Button } from "../ui/button";
 import PhoneModal from "../booking/PhoneModal";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -53,6 +54,7 @@ export default function Header() {
             >
               Đặt lịch ngay
             </Button>
+            <ThemeToggle />
 
             {/* Mobile */}
             <button
@@ -65,7 +67,6 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Mobile Menu đơn giản */}
         {mobileMenuOpen && (
           <div className="lg:hidden py-4 border-t border-slate-800">
             <nav className="flex flex-col space-y-4">

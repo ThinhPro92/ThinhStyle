@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { format, addDays, isToday } from "date-fns";
 
-import { Calendar, Clock, Loader2 } from "lucide-react";
+import { Clock, Loader2 } from "lucide-react";
 import { Button } from "../ui/button";
 import type { Step3Props } from "../../types";
 import { useAvailableSlots } from "../../features/booking/hooks/useAvailableSlots";
@@ -40,7 +40,6 @@ export default function Step3_SelectDateTime({
     return "bg-green-500 hover:bg-green-600 text-white shadow-md hover:scale-105";
   };
 
-  // KEY ĐÂY LÀ SIÊU ANH HÙNG – RESET STATE KHI ĐỔI NGÀY!
   const dateKey = format(selectedDate, "yyyy-MM-dd");
 
   return (
@@ -49,7 +48,6 @@ export default function Step3_SelectDateTime({
         Chọn Ngày & Giờ Cắt
       </h2>
 
-      {/* Chọn ngày */}
       <div className="grid grid-cols-7 gap-3 mb-10">
         {[...Array(7)].map((_, i) => {
           const date = addDays(new Date(), i);
@@ -62,7 +60,7 @@ export default function Step3_SelectDateTime({
               key={i}
               onClick={() => {
                 setSelectedDate(date);
-                setSelectedTime(null); // Reset ngay tại đây – an toàn 100%
+                setSelectedTime(null);
               }}
               className={`p-4 rounded-2xl transition-all border-2 ${
                 isSelected

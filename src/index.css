@@ -1,3 +1,47 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Main + Outlet dark mode */
+.dark main {
+  @apply bg-gray-950 text-gray-100;
+}
+
+/* Nội dung trong Outlet */
+.dark main .bg-white {
+  @apply bg-gray-800 border border-gray-700;
+}
+
+.dark main .text-gray-900 {
+  @apply text-gray-100;
+}
+
+.dark main .text-gray-600 {
+  @apply text-gray-300;
+}
+
+.dark main .text-gray-700 {
+  @apply text-gray-200;
+}
+
+/* Card, button trong Outlet */
+.dark main .bg-gray-100 {
+  @apply bg-gray-800;
+}
+
+.dark main .bg-accent {
+  @apply bg-orange-600 hover:bg-orange-500;
+}
+
+.dark main .text-accent {
+  @apply text-orange-400;
+}
+
+/* Header & Footer */
+.dark header {
+  @apply bg-black/95 backdrop-blur-xl border-b border-orange-500/20;
+}
+
+.dark footer {
+  @apply bg-black/95 border-t border-orange-500/20;
+}

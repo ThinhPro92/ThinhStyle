@@ -1,4 +1,3 @@
-// src/features/booking/hooks/useAvailableSlots.ts
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import apiClient from "../../../lib/apiClient";
