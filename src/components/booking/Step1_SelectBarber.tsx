@@ -1,11 +1,8 @@
 import { useBarbers } from "../../features/barber/hooks/useBarbers";
+import type { Step1Props } from "../../types";
 import { Button } from "../ui/button";
 
-export default function Step1_SelectBarber({
-  onNext,
-}: {
-  onNext: (data: any) => void;
-}) {
+export default function Step1_SelectBarber({ onNext }: Step1Props) {
   const { data: barbers = [], isLoading } = useBarbers();
 
   if (isLoading)
@@ -17,7 +14,7 @@ export default function Step1_SelectBarber({
         Chọn Thợ Cắt Yêu Thích
       </h2>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-        {barbers.map((barber: any) => (
+        {barbers.map((barber) => (
           <button
             key={barber._id}
             onClick={() => onNext({ barber })}

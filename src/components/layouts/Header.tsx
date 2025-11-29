@@ -59,6 +59,7 @@ export default function Header() {
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="lg:hidden"
             >
+              {}
               <Menu className="w-6 h-6" />
             </button>
           </div>

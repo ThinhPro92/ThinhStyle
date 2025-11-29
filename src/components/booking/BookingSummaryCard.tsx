@@ -1,12 +1,16 @@
 import { format } from "date-fns";
-
+import type { BookingData } from "../../types";
+interface BookingSummaryCardProps {
+  data: BookingData;
+  mobile?: boolean;
+}
 export default function BookingSummaryCard({
   data,
   mobile = false,
-}: {
-  data: any;
-  mobile?: boolean;
-}) {
+}: BookingSummaryCardProps) {
+  const totalPrice =
+    data.services?.reduce((sum, service) => sum + service.price, 0) ?? 0;
+
   return (
     <div
       className={`${
@@ -38,7 +42,9 @@ export default function BookingSummaryCard({
         <div className="border-t border-white/20 pt-4">
           <div className="flex justify-between text-2xl font-bold">
             <span>Tổng tiền</span>
-            <span className="text-accent">250.000đ</span>
+            <span className="text-orange-400">
+              {totalPrice.toLocaleString("vi-VN")}đ
+            </span>
           </div>
         </div>
       </div>

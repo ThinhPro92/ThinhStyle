@@ -1,4 +1,5 @@
-export interface Product {
-  _id?: string;
-  title: string;
-}
+export * from "./barber";
+export * from "./service";
+export * from "./booking";
+export * from "./auth";
+export * from "./common";

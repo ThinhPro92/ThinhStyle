@@ -1,23 +1,25 @@
 import { useState } from "react";
 import { useServices } from "../../features/service/hooks/useServices";
 import { Button } from "../ui/button";
+import type { Service, Step2Props } from "../../types";
 
 export default function Step2_SelectService({
   onNext,
   onPrev,
   selectedBarber,
-}: any) {
+}: Step2Props) {
   const { data: services = [], isLoading } = useServices();
-  const [selectedServices, setSelectedServices] = useState<any[]>([]);
+  const [selectedServices, setSelectedServices] = useState<Service[]>([]);
 
-  const toggleService = (service: any) => {
+  const toggleService = (service: Service) => {
     setSelectedServices((prev) =>
       prev.find((s) => s._id === service._id)
         ? prev.filter((s) => s._id !== service._id)
         : [...prev, service]
     );
   };
-
+  if (isLoading)
+    return <div className="text-center py-20">Đang tải dịch vụ...</div>;
   return (
     <div className="bg-white rounded-3xl shadow-xl p-8">
       <h2 className="text-3xl font-bold text-center mb-4">Chọn Dịch Vụ</h2>
@@ -26,7 +28,7 @@ export default function Step2_SelectService({
       </p>
 
       <div className="space-y-4">
-        {services.map((service: any) => (
+        {services.map((service: Service) => (
           <div
             key={service._id}
             onClick={() => toggleService(service)}

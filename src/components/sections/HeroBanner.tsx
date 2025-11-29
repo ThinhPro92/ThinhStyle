@@ -81,12 +81,13 @@ export default function HeroBanner() {
         onClick={prev}
         className="absolute left-4 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 p-3 rounded-full hover:bg-opacity-70 transition"
       >
-        <ChevronLeft className="w-8 h-8" />
+        {} <ChevronLeft className="w-8 h-8" />
       </button>
       <button
         onClick={next}
         className="absolute right-4 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 p-3 rounded-full hover:bg-opacity-70 transition"
       >
+        {}
         <ChevronRight className="w-8 h-8" />
       </button>
 
@@ -98,7 +99,9 @@ export default function HeroBanner() {
             className={`w-3 h-3 rounded-full transition ${
               i === current ? "bg-accent w-10" : "bg-white bg-opacity-50"
             }`}
-          />
+          >
+            {}
+          </button>
         ))}
       </div>
     </div>

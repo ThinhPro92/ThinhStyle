@@ -37,6 +37,7 @@ export default function PhoneModal({
       }, 1000);
     } catch (err) {
       setLoading(false);
+      console.log(err);
       alert("Gửi OTP thất bại");
     }
   };
@@ -73,7 +74,7 @@ export default function PhoneModal({
                     Đặt Lịch Nhanh
                   </h2>
                   <button onClick={onClose} className="absolute top-6 right-6">
-                    <X className="w-7 h-7 h-7 text-gray-500" />
+                    {} <X className="w-7 h-7 h-7 text-gray-500" />
                   </button>
                 </div>
 

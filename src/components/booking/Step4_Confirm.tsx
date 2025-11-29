@@ -1,18 +1,18 @@
 import { format } from "date-fns";
 import { useCreateBooking } from "../../features/booking/hooks/useCreateBooking";
 import { Button } from "../ui/button";
+import type { Step4Props } from "../../types";
 
-export default function Step4_Confirm({ bookingData, onPrev }: any) {
+export default function Step4_Confirm({ bookingData, onPrev }: Step4Props) {
   const { mutate: createBooking, isPending } = useCreateBooking();
 
   const totalPrice =
-    bookingData.services?.reduce((sum: number, s: any) => sum + s.price, 0) ||
-    0;
+    bookingData.services?.reduce((sum: number, s) => sum + s.price, 0) || 0;
 
   const handleConfirm = () => {
     const payload = {
       barberId: bookingData.barber._id,
-      serviceIds: bookingData.services.map((s: any) => s._id),
+      serviceIds: bookingData.services.map((s) => s._id),
       date: format(bookingData.date, "yyyy-MM-dd"),
       startTime: bookingData.time,
       note: "Khách đặt online từ ThinhStyle",
@@ -36,9 +36,7 @@ export default function Step4_Confirm({ bookingData, onPrev }: any) {
         </div>
         <div className="flex justify-between">
           <span>Dịch vụ:</span>{" "}
-          <strong>
-            {bookingData.services?.map((s: any) => s.name).join(", ")}
-          </strong>
+          <strong>{bookingData.services?.map((s) => s.name).join(", ")}</strong>
         </div>
         <div className="flex justify-between">
           <span>Thời gian:</span>{" "}
