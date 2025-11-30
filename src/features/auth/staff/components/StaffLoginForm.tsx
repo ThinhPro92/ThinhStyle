@@ -78,11 +78,6 @@ export default function StaffLoginForm() {
             {isPending ? "Đang đăng nhập..." : "Đăng nhập ngay"}
           </Button>
         </form>
-
-        <div className="mt-10 text-center text-sm text-slate-500 space-y-1">
-          <p>Admin: admin@thinhstyle.com / 123456</p>
-          <p>Barber: barber@thinhstyle.com / 123456</p>
-        </div>
       </Card>
     </div>
   );

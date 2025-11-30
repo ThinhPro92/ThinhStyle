@@ -1,10 +1,22 @@
-// src/features/auth/staff/hooks/useStaffLogin.ts
 import { useMutation } from "@tanstack/react-query";
-
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import apiClient from "../../../../lib/apiClient";
-
+import { AxiosError } from "axios";
+interface LoginResponse {
+  data: {
+    accessToken: string;
+    user: {
+      _id: string;
+      name?: string;
+      email: string;
+      role: "admin" | "barber" | "customer";
+    };
+  };
+}
+interface ApiError {
+  message?: string;
+}
 export const useStaffLogin = () => {
   const navigate = useNavigate();
 
@@ -16,32 +28,38 @@ export const useStaffLogin = () => {
       email: string;
       password: string;
     }) => {
-      // Dùng collection users có role
-      const res = await apiClient.post("/users", {
+      const res = await apiClient.post<LoginResponse>("/auth/login", {
         email,
         password,
-        role: email.includes("admin") ? "admin" : "barber",
       });
       return res.data.data;
     },
-    onSuccess: (user) => {
-      localStorage.setItem("staffToken", "fake-staff-token-" + user._id);
-      localStorage.setItem("staffRole", user.role);
+    onSuccess: (data) => {
+      const { role } = data.user;
+      if (role !== "admin" && role !== "barber") {
+        toast.error("Bạn không có quyền truy cập khu vực nhân viên!");
+        return navigate("/");
+      }
+      localStorage.setItem("staffToken", data.accessToken);
+      localStorage.setItem("staffRole", data.user.role);
+      localStorage.setItem("staffId", data.user._id);
+
       toast.success(
-        `Chào mừng ${user.role === "admin" ? "Admin" : "Barber"} ${
-          user.name || user.email
-        }`
+        `Chào mừng ${role === "admin" ? "Admin" : "Barber"} ${
+          data.user.name || data.user.email
+        }!`
       );
 
-      // Chuyển hướng theo role
-      if (user.role === "admin") {
-        navigate("/admin/dashboard");
+      if (role === "admin") {
+        navigate("/admin/dashboard", { replace: true });
       } else {
-        navigate("/barber/schedule");
+        navigate("/barber/schedule", { replace: true });
       }
     },
-    onError: () => {
-      toast.error("Email hoặc mật khẩu không đúng");
+    onError: (error: AxiosError<ApiError>) => {
+      toast.error(
+        error.response?.data?.message || "Email hoặc mật khẩu không đúng"
+      );
     },
   });
 };
