@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import apiClient from "../../../../lib/apiClient";
+import apiClient from "../../../lib/apiClient";
 import { AxiosError } from "axios";
 interface LoginResponse {
   data: {

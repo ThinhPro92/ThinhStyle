@@ -1,4 +1,3 @@
-// src/features/admin/components/Sidebar.tsx
 import { motion } from "framer-motion";
 import {
   LayoutDashboard,
@@ -11,7 +10,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { logoutStaff } from "../../../../utils/auth";
+import { logoutStaff } from "../../../utils/auth";
+import toast from "react-hot-toast";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Tổng quan", path: "/admin/dashboard" },
@@ -23,9 +23,15 @@ const menuItems = [
 ];
 
 export default function Sidebar() {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed] = useState(false);
   const location = useLocation();
-
+  const handleLogout = () => {
+    logoutStaff();
+    toast.success("Đăng xuất thành công!", {
+      icon: "Bye Bye",
+      style: { background: "#16a34a", color: "white" },
+    });
+  };
   return (
     <motion.aside
       initial={{ x: -100 }}
@@ -72,7 +78,7 @@ export default function Sidebar() {
 
       <div className="p-4 border-t border-orange-500/20">
         <button
-          onClick={logoutStaff}
+          onClick={handleLogout}
           className="flex items-center gap-4 p-4 rounded-xl hover:bg-red-600/20 w-full transition-all"
         >
           <LogOut className="w-6 h-6" />

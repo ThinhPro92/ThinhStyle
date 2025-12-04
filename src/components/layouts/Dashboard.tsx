@@ -1,7 +1,7 @@
-import Sidebar from "./components/Sidebar";
-import StatsCards from "./components/StatsCards";
-import RevenueChart from "./components/RevenueChart";
-import TopBarbers from "../../../components/sections/TopBarbers";
+import Sidebar from "../../features/staff/components/Sidebar";
+import StatsCards from "../../features/staff/components/StatsCards";
+import RevenueChart from "../../features/staff/components/RevenueChart";
+import TopBarbers from "../sections/TopBarbers";
 
 export default function AdminDashboard() {
   return (

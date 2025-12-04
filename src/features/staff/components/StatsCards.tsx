@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { DollarSign, Calendar, Users, TrendingUp } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import apiClient from "../../../../lib/apiClient";
+import apiClient from "../../../lib/apiClient";
 
 export default function StatsCards() {
   const { data } = useQuery({

@@ -1,6 +1,5 @@
-// src/hooks/useStaffAuth.ts
 import { useContext } from "react";
-import { AuthContext } from "../../../../context/AuthContext";
+import { AuthContext } from "../../../context/AuthContext";
 
 export const useStaffAuth = () => {
   const context = useContext(AuthContext);
