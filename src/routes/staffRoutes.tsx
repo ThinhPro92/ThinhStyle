@@ -4,6 +4,7 @@ import AdminDashboard from "../components/layouts/Dashboard";
 import AdminNotFound from "../pages/admin/AdminNotFound";
 
 import BarberAdmin from "../pages/admin/BarberAdmin";
+import ServicesPage from "../pages/admin/ServicesPage";
 
 export const staffRoutes = () => [
   {
@@ -16,6 +17,7 @@ export const staffRoutes = () => [
     children: [
       { path: "dashboard", Component: AdminDashboard },
       { path: "barbers", Component: BarberAdmin },
+      { path: "services", Component: ServicesPage },
       { path: "*", Component: AdminNotFound },
     ],
   },
