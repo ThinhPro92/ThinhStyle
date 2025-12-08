@@ -1,4 +1,4 @@
-import { useBarbers } from "../../features/barber/hooks/useBarbers";
+import { useBarbers } from "../../features/barber/hooks/useBarbersClient";
 import type { Step1Props } from "../../types";
 import { Button } from "../ui/button";
 
