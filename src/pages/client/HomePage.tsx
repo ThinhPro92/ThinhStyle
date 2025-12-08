@@ -1,3 +1,4 @@
+import BlogsSection from "../../components/sections/BlogsSection";
 import HeroBanner from "../../components/sections/HeroBanner";
 import ReviewsSection from "../../components/sections/ReviewsSection";
 import ServicesSection from "../../components/sections/ServicesSection";
@@ -10,6 +11,7 @@ export default function HomePage() {
       <ReviewsSection />
       <TopBarbers />
       <ServicesSection />
+      <BlogsSection />
     </>
   );
 }

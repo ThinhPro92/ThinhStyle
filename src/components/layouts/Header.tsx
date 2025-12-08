@@ -39,6 +39,9 @@ export default function Header() {
             <Link to="/booking" className="hover:text-accent transition">
               Đặt lịch
             </Link>
+            <Link to="/blogs" className="hover:text-accent transition">
+              Về chúng tôi
+            </Link>
           </nav>
 
           {/* CTA */}
@@ -90,6 +93,13 @@ export default function Header() {
                 className="hover:text-accent"
               >
                 Dịch vụ
+              </Link>
+              <Link
+                to="/blogs"
+                onClick={() => setMobileMenuOpen(false)}
+                className="hover:text-accent"
+              >
+                Về chúng tôi
               </Link>
               <Link
                 to="/booking"
