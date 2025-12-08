@@ -7,6 +7,7 @@ import {
   DollarSign,
   Settings,
   LogOut,
+  FileText,
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
@@ -19,6 +20,7 @@ const menuItems = [
   { icon: Calendar, label: "Lịch đặt", path: "/admin/bookings" },
   { icon: Users, label: "Quản lý thợ", path: "/admin/barbers" },
   { icon: Scissors, label: "Dịch vụ", path: "/admin/services" },
+  { icon: FileText, label: "Blog", path: "/admin/blogs" },
   { icon: Settings, label: "Cài đặt", path: "/admin/settings" },
 ];
 

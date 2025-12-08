@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { startTransition, useEffect, useState } from "react";
 import { useBarberStore } from "../../../../store/useBarberStore";
 import { useBarberActions } from "../../hooks/useBarberActions";
+import apiClient from "../../../../lib/apiClient";
 
 const defaultWorkingHours = {
   "1": { isWorking: true, start: "09:00", end: "21:00" },
@@ -61,6 +62,7 @@ export default function CreateBarberModal() {
   const handleSubmit = async () => {
     if (!form.name || !form.phone)
       return toast.error("Nhập tên và số điện thoại!");
+
     create.mutate({
       ...form,
       avatar,
@@ -68,7 +70,11 @@ export default function CreateBarberModal() {
       rating: 0,
       totalRevenue: 0,
       role: "barber",
-      password: Math.random().toString(36).slice(-8),
+      password: "123456", // MẬT KHẨU MẶC ĐỊNH
+    });
+
+    toast.success("Tạo thợ thành công! Mật khẩu: 123456", {
+      duration: 10000,
     });
   };
 

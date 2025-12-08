@@ -1,10 +1,12 @@
 import { StaffRoute } from "../components/auth/StaffRoute";
 import StaffLoginForm from "../features/auth/staff/components/StaffLoginForm";
-import AdminDashboard from "../components/layouts/Dashboard";
+import AdminDashboard from "../components/layouts/DashboardAdmin";
 import AdminNotFound from "../pages/admin/AdminNotFound";
 
 import BarberAdmin from "../pages/admin/BarberAdmin";
 import ServicesPage from "../pages/admin/ServicesPage";
+import BlogsAdmin from "../pages/admin/BlogsAdmin";
+import BarberDashboard from "../pages/admin/BarberDashboard";
 
 export const staffRoutes = () => [
   {
@@ -18,6 +20,7 @@ export const staffRoutes = () => [
       { path: "dashboard", Component: AdminDashboard },
       { path: "barbers", Component: BarberAdmin },
       { path: "services", Component: ServicesPage },
+      { path: "blogs", Component: BlogsAdmin },
       { path: "*", Component: AdminNotFound },
     ],
   },
@@ -25,7 +28,7 @@ export const staffRoutes = () => [
     path: "/barber",
     element: <StaffRoute />,
     children: [
-      // { path: "schedule", Component: BarberSchedule },
+      { path: "dashboard", Component: BarberDashboard },
       { path: "*", Component: AdminNotFound },
     ],
   },
