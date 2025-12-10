@@ -1,11 +1,11 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useStaffLogin } from "../../../staff/hooks/useStaffLogin";
 import { Card } from "../../../../components/ui/card";
 import { Label } from "../../../../components/ui/label";
 import { Input } from "../../../../components/ui/input";
 import { Button } from "../../../../components/ui/button";
+import { useStaffLogin } from "../hooks/useStaffLogin";
 
 const schema = z.object({
   email: z.string().email("Email không hợp lệ"),
