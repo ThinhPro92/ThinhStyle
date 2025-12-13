@@ -2,13 +2,15 @@ import { useQuery } from "@tanstack/react-query";
 import { Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 import apiClient from "../../lib/apiClient";
+import { QUERY_KEYS } from "../../constants/queryKeys";
+import type { Service } from "../../types/service";
 
 export default function ServicesSection() {
-  const { data: services = [] } = useQuery({
-    queryKey: ["services-home"],
+  const { data: services = [] } = useQuery<Service[]>({
+    queryKey: QUERY_KEYS.SERVICES_HOME,
     queryFn: async () => {
       const res = await apiClient.get("/services");
-      return res.data.data.filter((s: any) => s.isActive).slice(0, 6);
+      return res.data.data.filter((s: Service) => s.isActive).slice(0, 6);
     },
   });
 
@@ -25,7 +27,7 @@ export default function ServicesSection() {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {services.map((service: any) => (
+          {services.map((service) => (
             <Link to="/services" key={service._id} className="group block">
               <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-xl overflow-hidden hover:shadow-2xl transition-all hover:-translate-y-2">
                 <div className="h-48 bg-gradient-to-br from-orange-400 to-red-500 relative overflow-hidden">
@@ -37,7 +39,7 @@ export default function ServicesSection() {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-white text-6xl opacity-30">
-                      Scissors
+                      ✂️
                     </div>
                   )}
                 </div>

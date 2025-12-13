@@ -1,9 +1,9 @@
-// src/features/admin/services/components/ServicesGrid.tsx
 import { motion } from "framer-motion";
 import ServiceCard from "./ServiceCard";
+import type { Service } from "../../../types/service";
 
 interface Props {
-  services: any[];
+  services: Service[];
 }
 
 export default function ServicesGrid({ services }: Props) {
@@ -18,7 +18,7 @@ export default function ServicesGrid({ services }: Props) {
   return (
     <motion.div
       layout
-      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
     >
       {services.map((service) => (
         <ServiceCard key={service._id} service={service} />

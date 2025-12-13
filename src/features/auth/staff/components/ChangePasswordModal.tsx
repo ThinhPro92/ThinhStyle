@@ -7,16 +7,13 @@ export default function ChangePasswordModal({
   onSuccess: () => void;
 }) {
   const handleSubmit = () => {
-    // Giả lập thành công (không gọi API)
     toast.success("Đổi mật khẩu thành công! Chào mừng bạn đến với ThinhStyle", {
       duration: 6000,
       style: { background: "#16a34a", color: "white" },
     });
 
-    // Đánh dấu đã đổi mật khẩu lần đầu
     localStorage.setItem("hasChangedPassword", "true");
 
-    // Gọi callback để reload dashboard
     onSuccess();
   };
 

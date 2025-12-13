@@ -1,4 +1,3 @@
-// src/pages/client/ServicesPage.tsx
 import { useQuery } from "@tanstack/react-query";
 import { Clock, Star, Scissors } from "lucide-react";
 import { motion } from "framer-motion";
@@ -27,7 +26,6 @@ export default function ServicesPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-gray-950 dark:to-black py-20">
       <div className="container mx-auto px-4 max-w-7xl">
-        {/* Hero */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -41,7 +39,6 @@ export default function ServicesPage() {
           </p>
         </motion.div>
 
-        {/* Grid dịch vụ */}
         {isLoading ? (
           <div className="text-center py-20">
             <div className="animate-spin w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full mx-auto" />

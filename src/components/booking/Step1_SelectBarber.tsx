@@ -1,5 +1,5 @@
 import { useBarbers } from "../../features/barber/hooks/useBarbersClient";
-import type { Step1Props } from "../../types";
+import type { Step1Props } from "../../types/booking";
 import { Button } from "../ui/button";
 
 export default function Step1_SelectBarber({ onNext }: Step1Props) {

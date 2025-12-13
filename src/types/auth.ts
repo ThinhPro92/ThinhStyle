@@ -8,9 +8,8 @@ export interface CustomerUser {
 }
 
 export interface StaffUser {
-  _id?: string;
+  _id: string;
   name?: string;
   email: string;
-  password: string;
   role: "barber" | "admin";
 }

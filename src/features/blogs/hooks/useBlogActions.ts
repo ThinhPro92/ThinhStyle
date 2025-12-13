@@ -1,55 +1,44 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { useBlogStore } from "../../../store/useBlogStore";
 import apiClient from "../../../lib/apiClient";
+import { QUERY_KEYS } from "../../../constants/queryKeys";
+import { useBlogStore } from "../../../store/useBlogStore";
+import type { CreateBlogData, UpdateBlogData } from "../../../types/blog";
 
 export const useBlogActions = () => {
   const queryClient = useQueryClient();
   const { closeCreate, closeEdit, closeDelete } = useBlogStore();
 
   const create = useMutation({
-    mutationFn: (data: any) => apiClient.post("/blogs", data),
+    mutationFn: (data: CreateBlogData) => apiClient.post("/blogs", data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["blogs"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.BLOGS });
       toast.success("Đăng bài thành công!");
       closeCreate();
     },
-    onError: () => toast.error("Lỗi khi đăng bài"),
+    onError: () => toast.error("Lỗi đăng bài"),
   });
 
   const update = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
+    mutationFn: ({ id, data }: { id: string; data: UpdateBlogData }) =>
       apiClient.put(`/blogs/${id}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["blogs"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.BLOGS });
       toast.success("Cập nhật thành công!");
       closeEdit();
     },
-    onError: () => toast.error("Lỗi khi cập nhật"),
+    onError: () => toast.error("Lỗi cập nhật"),
   });
 
   const remove = useMutation({
     mutationFn: (id: string) => apiClient.delete(`/blogs/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["blogs"] });
-      toast.success("Xóa bài thành công!");
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.BLOGS });
+      toast.success("Xóa thành công!");
       closeDelete();
     },
-    onError: () => toast.error("Lỗi khi xóa"),
-  });
-  const detail = useMutation({
-    mutationFn: (id: string) => apiClient.get(`/blogs/${id}`),
-
-    onError: () => toast.error("Không thể tải bài viết"),
+    onError: () => toast.error("Lỗi xóa"),
   });
 
-  // INCREASE VIEW — tăng view
-  const increaseView = useMutation({
-    mutationFn: (id: string) => apiClient.patch(`/blogs/${id}/view`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["blogs"] });
-    },
-    onError: () => {},
-  });
-  return { create, update, remove, detail, increaseView };
+  return { create, update, remove };
 };

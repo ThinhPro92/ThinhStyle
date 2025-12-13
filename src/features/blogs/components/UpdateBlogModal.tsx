@@ -1,42 +1,70 @@
 import { X } from "lucide-react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
-
-import { useBlogActions } from "../hooks/useBlogActions";
+import { useForm, type SubmitHandler } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import { useEffect } from "react";
+
 import { useBlogStore } from "../../../store/useBlogStore";
+import { useBlogActions } from "../hooks/useBlogActions";
+
+import {
+  updateBlogSchema,
+  type UpdateBlogForm,
+} from "../../../validates/BlogSchema";
 
 export default function UpdateBlogModal() {
-  const { isEditOpen, closeEdit, selectedBlog, form, setForm } = useBlogStore();
+  const { isEditOpen, closeEdit, selectedBlog, form, setForm, resetForm } =
+    useBlogStore();
   const { update } = useBlogActions();
 
-  // ================================
-  // 1. Tiptap Editor
-  // ================================
-  const editor = useEditor({
-    extensions: [StarterKit, Image],
-    content: form.content || "",
-    onUpdate: ({ editor }) => setForm({ content: editor.getHTML() }),
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    setValue,
+  } = useForm<UpdateBlogForm>({
+    resolver: zodResolver(updateBlogSchema),
+    defaultValues: form,
   });
 
-  // ================================
-  // 2. Đồng bộ dữ liệu khi mở modal
-  // ================================
+  const editor = useEditor({
+    extensions: [StarterKit, Image],
+    content: "",
+    onUpdate: ({ editor }) => {
+      const html = editor.getHTML();
+      setForm({ content: html });
+      setValue("content", html, { shouldDirty: true });
+    },
+  });
+
   useEffect(() => {
-    if (isEditOpen && selectedBlog) {
-      setForm({ ...selectedBlog });
+    if (!isEditOpen || !selectedBlog) return;
+    if (!editor) return;
 
-      if (editor) editor.commands.setContent(selectedBlog.content || "");
-    }
-  }, [isEditOpen, selectedBlog, editor, setForm]);
+    const values: UpdateBlogForm = {
+      title: selectedBlog.title,
+      excerpt: selectedBlog.excerpt || "",
+      content: selectedBlog.content || "",
+      author: selectedBlog.author || "ThinhStyle Team",
+      category: selectedBlog.category || "Xu hướng",
+      image: selectedBlog.image,
+      featured: selectedBlog.featured ?? false,
+      status: selectedBlog.status || "draft",
+    };
 
-  // ================================
-  // 3. Upload Ảnh → Cloudinary → Insert vào Editor
-  // ================================
-  const uploadImage = async (file: File) => {
+    reset(values);
+    resetForm();
+    setForm(values);
+
+    editor.commands.setContent(selectedBlog.content || "");
+  }, [isEditOpen, selectedBlog, reset, resetForm, editor, setForm]);
+
+  const uploadImage = async (file: File): Promise<string | null> => {
     try {
       const data = new FormData();
       data.append("file", file);
@@ -46,12 +74,23 @@ export default function UpdateBlogModal() {
         "https://api.cloudinary.com/v1_1/dvzhf7x8t/image/upload",
         { method: "POST", body: data }
       );
-      const json = await res.json();
-      return json.secure_url;
+      const json = (await res.json()) as { secure_url?: string };
+      return json.secure_url || null;
     } catch {
       toast.error("Lỗi upload ảnh");
       return null;
     }
+  };
+
+  const handleCoverImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const url = await uploadImage(file);
+    if (!url) return;
+
+    setForm({ image: url });
+    setValue("image", url);
   };
 
   const handleInsertImage = async (file: File) => {
@@ -59,38 +98,38 @@ export default function UpdateBlogModal() {
     if (!url) return;
 
     editor?.chain().focus().setImage({ src: url }).run();
-    toast.success("Đã chèn ảnh!");
   };
 
-  // ================================
-  // 4. Submit Cập nhật
-  // ================================
-  const handleSubmit = () => {
-    if (!form.title || !form.content)
-      return toast.error("Thiếu tiêu đề hoặc nội dung!");
+  const onSubmit: SubmitHandler<UpdateBlogForm> = (data) => {
+    if (!selectedBlog) return;
+
+    const titleForSlug = data.title ?? selectedBlog.title ?? "untitled";
+    const slug = titleForSlug.toLowerCase().replace(/\s+/g, "-");
 
     update.mutate({
-      id: selectedBlog!._id,
-      data: { ...form, slug: form.title.toLowerCase().replace(/ /g, "-") },
+      id: selectedBlog._id,
+      data: {
+        ...data,
+        slug,
+        image: form.image,
+        content: form.content,
+      },
     });
   };
 
   if (!isEditOpen || !selectedBlog) return null;
 
-  // ================================
-  // UI Modal
-  // ================================
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="fixed inset-0 bg-black/90 backdrop-blur z-50 flex items-center justify-center"
+      className="fixed inset-0 bg-black/90 backdrop-blur z-50 flex items-center justify-center p-4"
       onClick={closeEdit}
     >
       <motion.div
         initial={{ scale: 0.95 }}
         animate={{ scale: 1 }}
-        className="w-full h-full max-w-7xl mx-8 bg-gradient-to-br from-gray-900 to-black border border-orange-500/30 rounded-3xl overflow-hidden"
+        className="w-full max-w-7xl bg-gradient-to-br from-gray-900 to-black border border-orange-500/30 rounded-3xl overflow-hidden max-h-screen"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center p-6 border-b border-gray-800">
@@ -98,90 +137,97 @@ export default function UpdateBlogModal() {
             Sửa Bài Viết
           </h2>
           <button
+            aria-label="Đóng Modal"
             onClick={closeEdit}
-            className="p-3 hover:bg-white/10 rounded-xl"
+            className="p-3 hover:bg-white/10 rounded-xl transition"
           >
             <X className="w-8 h-8" />
           </button>
         </div>
 
-        <div className="grid lg:grid-cols-3 h-full">
-          {/* Left Panel */}
+        <div className="grid lg:grid-cols-3 h-full overflow-hidden">
           <div className="lg:col-span-1 p-8 space-y-6 border-r border-gray-800 overflow-y-auto">
             <input
-              value={form.title}
+              {...register("title")}
               onChange={(e) => setForm({ title: e.target.value })}
-              placeholder="Tiêu đề"
-              className="w-full text-3xl font-bold bg-transparent border-b-2 border-gray-700 focus:border-orange-500 outline-none pb-2"
+              placeholder="Tiêu đề bài viết"
+              className="w-full text-3xl font-bold bg-transparent border-b-2 border-gray-700 focus:border-orange-500 outline-none pb-2 transition"
             />
+            {errors.title && (
+              <p className="text-red-400 text-sm">{errors.title.message}</p>
+            )}
 
             <textarea
-              value={form.excerpt}
+              {...register("excerpt")}
               onChange={(e) => setForm({ excerpt: e.target.value })}
-              placeholder="Mô tả ngắn"
+              placeholder="Mô tả ngắn (SEO)"
               rows={3}
-              className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none"
+              className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none transition"
             />
+            {errors.excerpt && (
+              <p className="text-red-400 text-sm">{errors.excerpt.message}</p>
+            )}
 
-            {/* Main Image Upload */}
             <div className="flex justify-center">
-              <label className="cursor-pointer">
+              <label className="cursor-pointer group">
                 {form.image ? (
                   <img
                     src={form.image}
-                    className="w-full h-64 rounded-xl object-cover border-4 border-orange-500"
+                    alt="Cover"
+                    className="w-full h-64 rounded-xl object-cover border-4 border-orange-500 group-hover:opacity-90 transition"
                   />
                 ) : (
-                  <div className="w-full h-64 bg-gray-800 rounded-xl border-4 border-dashed border-orange-500 flex items-center justify-center text-6xl">
+                  <div className="w-full h-64 bg-gray-800 rounded-xl border-4 border-dashed border-orange-500 flex items-center justify-center text-6xl group-hover:bg-gray-700 transition">
                     +
                   </div>
                 )}
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={async (e) =>
-                    e.target.files?.[0] &&
-                    setForm({ image: await uploadImage(e.target.files[0]) })
-                  }
+                  onChange={handleCoverImage}
                   className="hidden"
                 />
               </label>
             </div>
 
             <select
-              value={form.category}
-              onChange={(e) => setForm({ category: e.target.value })}
-              className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl"
+              {...register("category")}
+              onChange={(e) =>
+                setForm({
+                  category: e.target.value as UpdateBlogForm["category"],
+                })
+              }
+              className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none transition"
             >
-              <option>Xu hướng</option>
-              <option>Mẹo vặt</option>
-              <option>Tư vấn</option>
-              <option>Sản phẩm</option>
+              <option value="Xu hướng">Xu hướng</option>
+              <option value="Mẹo vặt">Mẹo vặt</option>
+              <option value="Tư vấn">Tư vấn</option>
+              <option value="Sản phẩm">Sản phẩm</option>
             </select>
 
-            <div className="flex items-center gap-4">
+            <label className="flex items-center gap-4 cursor-pointer">
               <input
                 type="checkbox"
-                checked={form.featured}
+                {...register("featured")}
                 onChange={(e) => setForm({ featured: e.target.checked })}
+                className="w-5 h-5 rounded accent-orange-500"
               />
-              <label>Nổi bật</label>
-            </div>
+              <span className="text-lg">Nổi bật (trang chủ)</span>
+            </label>
 
             <button
-              onClick={handleSubmit}
+              type="submit"
+              onClick={handleSubmit(onSubmit)}
               disabled={update.isPending}
-              className="w-full bg-gradient-to-r from-orange-500 to-red-600 py-5 rounded-xl font-bold text-xl hover:scale-105 transition"
+              className="w-full bg-gradient-to-r from-orange-500 to-red-600 py-5 rounded-xl font-bold text-xl hover:scale-105 transition shadow-2xl disabled:opacity-70"
             >
-              {update.isPending ? "Đang cập nhật..." : "Cập Nhật Bài"}
+              {update.isPending ? "Đang lưu..." : "Cập nhật"}
             </button>
           </div>
 
-          {/* Right Panel – Editor */}
           <div className="lg:col-span-2 p-8">
-            <div className="bg-white text-black rounded-2xl h-full overflow-hidden">
-              {/* Toolbar */}
-              <div className="border-b border-gray-300 p-4 flex gap-2 items-center">
+            <div className="bg-white text-black rounded-2xl h-full flex flex-col overflow-hidden">
+              <div className="border-b border-gray-300 p-4 flex gap-2 flex-wrap">
                 <button
                   onClick={() => editor?.chain().focus().toggleBold().run()}
                   className={`px-4 py-2 rounded ${
@@ -217,25 +263,23 @@ export default function UpdateBlogModal() {
                   H2
                 </button>
 
-                {/* Insert Image Button */}
-                <label className="px-4 py-2 rounded bg-gray-200 cursor-pointer">
+                <label className="px-4 py-2 rounded bg-gray-200 cursor-pointer hover:bg-gray-300 transition">
                   Ảnh
                   <input
                     type="file"
                     accept="image/*"
                     className="hidden"
-                    onChange={async (e) =>
-                      e.target.files?.[0] &&
-                      handleInsertImage(e.target.files[0])
-                    }
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleInsertImage(file);
+                    }}
                   />
                 </label>
               </div>
 
-              {/* Editor */}
               <EditorContent
                 editor={editor}
-                className="p-8 prose prose-lg max-w-none h-full overflow-y-auto"
+                className="p-8 prose prose-lg max-w-none flex-1 overflow-y-auto"
               />
             </div>
           </div>

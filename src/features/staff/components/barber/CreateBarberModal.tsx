@@ -1,13 +1,16 @@
 import { Plus } from "lucide-react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
-
-import { startTransition, useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useBarberStore } from "../../../../store/useBarberStore";
 import { useBarberActions } from "../../hooks/useBarberActions";
-import apiClient from "../../../../lib/apiClient";
+import { startTransition, useLayoutEffect, useState } from "react";
+import { createBarberSchema } from "../../../../validates/BarberSchema";
+import type { z } from "zod";
+import type { CreateBarberData, WorkingHours } from "../../../../types/barber";
 
-const defaultWorkingHours = {
+const defaultWorkingHours: WorkingHours = {
   "1": { isWorking: true, start: "09:00", end: "21:00" },
   "2": { isWorking: true, start: "09:00", end: "21:00" },
   "3": { isWorking: true, start: "09:00", end: "21:00" },
@@ -17,37 +20,40 @@ const defaultWorkingHours = {
   "0": { isWorking: false },
 };
 
+type FormData = z.infer<typeof createBarberSchema>;
+
 export default function CreateBarberModal() {
   const { isCreateOpen, closeCreate } = useBarberStore();
   const { create } = useBarberActions();
   const [avatar, setAvatar] = useState("");
 
-  const [form, setForm] = useState({
-    name: "",
-    phone: "",
-    email: "",
-    description: "",
-    commission: 40,
-    status: "active" as const,
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<FormData>({
+    resolver: zodResolver(createBarberSchema),
+    defaultValues: {
+      name: "",
+      phone: "",
+      email: "",
+      description: "",
+      commission: 40,
+      status: "active",
+    },
   });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (isCreateOpen) {
+      reset();
       startTransition(() => {
-        setForm({
-          name: "",
-          phone: "",
-          email: "",
-          description: "",
-          commission: 40,
-          status: "active",
-        });
         setAvatar("");
       });
     }
-  }, [isCreateOpen]);
+  }, [isCreateOpen, reset]);
 
-  const uploadImage = async (file: File) => {
+  const uploadImage = async (file: File): Promise<string> => {
     const data = new FormData();
     data.append("file", file);
     data.append("upload_preset", "thinhstyle");
@@ -59,23 +65,19 @@ export default function CreateBarberModal() {
     return json.secure_url;
   };
 
-  const handleSubmit = async () => {
-    if (!form.name || !form.phone)
-      return toast.error("Nhập tên và số điện thoại!");
-
-    create.mutate({
-      ...form,
+  const onSubmit = async (data: FormData) => {
+    const payload: CreateBarberData = {
+      ...data,
       avatar,
       workingHours: defaultWorkingHours,
       rating: 0,
       totalRevenue: 0,
       role: "barber",
-      password: "123456", // MẬT KHẨU MẶC ĐỊNH
-    });
-
-    toast.success("Tạo thợ thành công! Mật khẩu: 123456", {
-      duration: 10000,
-    });
+      password: "123456",
+      email: data.email || "",
+    };
+    create.mutate(payload);
+    toast.success("Tạo thợ thành công! Mật khẩu: 123456", { duration: 10000 });
   };
 
   if (!isCreateOpen) return null;
@@ -96,13 +98,13 @@ export default function CreateBarberModal() {
         <h2 className="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-orange-500 to-red-600 bg-clip-text text-transparent">
           Thêm Thợ Mới
         </h2>
-
-        <div className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="flex justify-center">
             <label className="cursor-pointer">
               {avatar ? (
                 <img
                   src={avatar}
+                  alt="Avatar"
                   className="w-32 h-32 rounded-full object-cover border-4 border-orange-500"
                 />
               ) : (
@@ -113,60 +115,69 @@ export default function CreateBarberModal() {
               <input
                 type="file"
                 accept="image/*"
-                onChange={async (e) =>
-                  e.target.files?.[0] &&
-                  setAvatar(await uploadImage(e.target.files[0]))
-                }
                 className="hidden"
+                onChange={async (e) => {
+                  if (e.target.files?.[0]) {
+                    const url = await uploadImage(e.target.files[0]);
+                    setAvatar(url);
+                  }
+                }}
               />
             </label>
           </div>
 
+          {/* Các input */}
           <input
+            {...register("name")}
             placeholder="Họ tên *"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
             className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none"
           />
+          {errors.name && (
+            <p className="text-red-500 text-sm">{errors.name.message}</p>
+          )}
+
           <input
+            {...register("phone")}
             placeholder="Số điện thoại *"
-            value={form.phone}
-            onChange={(e) => setForm({ ...form, phone: e.target.value })}
             className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none"
           />
+          {errors.phone && (
+            <p className="text-red-500 text-sm">{errors.phone.message}</p>
+          )}
+
           <input
-            placeholder="Email"
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            {...register("email")}
+            placeholder="Email (tùy chọn)"
             className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none"
           />
+
           <textarea
+            {...register("description")}
             placeholder="Mô tả (kinh nghiệm, chuyên môn...)"
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
             rows={3}
-            className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none"
+            className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none resize-none"
           />
+
           <div className="flex items-center justify-between">
             <span>Hoa hồng (%)</span>
             <input
               type="number"
-              value={form.commission}
-              onChange={(e) =>
-                setForm({ ...form, commission: +e.target.value })
-              }
+              {...register("commission", { valueAsNumber: true })}
               className="w-24 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-center"
             />
           </div>
+          {errors.commission && (
+            <p className="text-red-500 text-sm">{errors.commission.message}</p>
+          )}
 
           <button
-            onClick={handleSubmit}
+            type="submit"
             disabled={create.isPending}
             className="w-full bg-gradient-to-r from-orange-500 to-red-600 py-5 rounded-xl font-bold text-xl hover:scale-105 transition disabled:opacity-50"
           >
             {create.isPending ? "Đang tạo..." : "Tạo Ngay"}
           </button>
-        </div>
+        </form>
       </motion.div>
     </motion.div>
   );

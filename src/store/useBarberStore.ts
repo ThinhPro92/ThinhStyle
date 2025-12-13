@@ -1,22 +1,5 @@
 import { create } from "zustand";
-
-export interface Barber {
-  _id: string;
-  name: string;
-  email: string;
-  phone: string;
-  avatar?: string;
-  description?: string;
-  rating?: number;
-  commission: number;
-  status: "active" | "inactive";
-  totalRevenue: number;
-  workingHours: Record<
-    string,
-    { isWorking: boolean; start?: string; end?: string }
-  >;
-  role: "barber";
-}
+import type { Barber } from "../types/barber";
 
 interface BarberStore {
   isCreateOpen: boolean;
@@ -25,7 +8,6 @@ interface BarberStore {
   isDeleteOpen: boolean;
   selectedBarber: Barber | null;
   search: string;
-
   openCreate: () => void;
   closeCreate: () => void;
   openEdit: (barber: Barber) => void;
@@ -44,10 +26,8 @@ export const useBarberStore = create<BarberStore>((set) => ({
   isDeleteOpen: false,
   selectedBarber: null,
   search: "",
-
   openCreate: () => set({ isCreateOpen: true, selectedBarber: null }),
   closeCreate: () => set({ isCreateOpen: false }),
-
   openEdit: (barber) => set({ isEditOpen: true, selectedBarber: barber }),
   openDetail: (barber) => set({ isDetailOpen: true, selectedBarber: barber }),
   closeDetail: () => set({ isDetailOpen: false, selectedBarber: null }),

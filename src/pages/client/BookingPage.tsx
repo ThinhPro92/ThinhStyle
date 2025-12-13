@@ -12,7 +12,7 @@ import type {
   BookingData,
   BookingStep,
   ConfirmedBookingData,
-} from "../../types";
+} from "../../types/booking";
 
 export default function BookingPage() {
   const [currentStep, setCurrentStep] = useState<BookingStep>(1);

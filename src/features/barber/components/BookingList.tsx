@@ -1,46 +1,52 @@
-import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import EmptyState from "./EmptyState";
 import BookingCard from "./BookingCard";
+import { useEffect } from "react";
+import type { BarberAdmin, BarberSocket, Booking } from "../../../types/barber";
+import { QUERY_KEYS } from "../../../constants/queryKeys";
+import apiClient from "../../../lib/apiClient";
 
 interface Props {
-  socket: any;
-  staffUser: any;
+  socket: BarberSocket;
+  staffUser: BarberAdmin;
 }
 
 export default function BookingList({ socket, staffUser }: Props) {
-  const [bookings, setBookings] = useState<any[]>([]);
+  const queryClient = useQueryClient();
+
+  const { data: bookings = [] } = useQuery<Booking[]>({
+    queryKey: QUERY_KEYS.BOOKINGS(staffUser._id),
+    queryFn: async () => {
+      const res = await apiClient.get(`/bookings/barber/${staffUser._id}`);
+      return res.data.data || [];
+    },
+  });
 
   useEffect(() => {
-    const load = async () => {
-      const res = await fetch(
-        `https://api-class-o1lo.onrender.com/api/thinhstyle/bookings/barber/${staffUser._id}`
-      );
-      const data = await res.json();
-      setBookings(data.data || []);
-    };
-    load();
-
     socket.emit("joinBarberRoom", staffUser._id);
-    socket.on("newBooking", (b: any) => {
-      setBookings((prev) => [b, ...prev]);
-      toast.success(`Khách mới: ${b.customer.name} - ${b.time}`);
-    });
 
-    return () => socket.off("newBooking");
-  }, [staffUser._id, socket]);
+    const handleNewBooking = (b: Booking) => {
+      queryClient.setQueryData(
+        QUERY_KEYS.BOOKINGS(staffUser._id),
+        (old: Booking[] | undefined) => [b, ...(old || [])]
+      );
+      toast.success(`Khách mới: ${b.customer.name} - ${b.time}`);
+    };
+
+    socket.on("newBooking", handleNewBooking);
+
+    return () => {
+      socket.off("newBooking", handleNewBooking);
+    };
+  }, [socket, staffUser._id, queryClient]);
 
   const updateStatus = async (id: string, status: string) => {
-    await fetch(
-      `https://api-class-o1lo.onrender.com/api/thinhstyle/bookings/${id}`,
-      {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      }
-    );
-    setBookings((prev) =>
-      prev.map((b) => (b._id === id ? { ...b, status } : b))
+    await apiClient.patch(`/bookings/${id}`, { status });
+    queryClient.setQueryData(
+      QUERY_KEYS.BOOKINGS(staffUser._id),
+      (old: Booking[] | undefined) =>
+        old?.map((b) => (b._id === id ? { ...b, status } : b))
     );
   };
 

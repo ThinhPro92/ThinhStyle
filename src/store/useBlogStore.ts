@@ -1,39 +1,47 @@
 import { create } from "zustand";
+import type { Blog } from "../types/blog";
+import type { z } from "zod";
+import { createBlogSchema } from "../validates/BlogSchema";
 
-export interface Blog {
-  _id: string;
-  title: string;
-  slug: string;
-  content: string;
-  excerpt: string;
-  author: string;
-  category: string;
-  image?: string;
-  featured: boolean;
-  status: "draft" | "published";
-  views: number;
-  createdAt: string;
-}
+export type BlogForm = z.infer<typeof createBlogSchema>;
+
+const DEFAULT_FORM_STATE: BlogForm = {
+  title: "",
+  excerpt: "",
+  content: "",
+  author: "ThinhStyle Team",
+  category: "Xu hướng",
+  featured: false,
+  status: "draft",
+  image: undefined,
+};
 
 interface BlogStore {
   isCreateOpen: boolean;
   isEditOpen: boolean;
   isDetailOpen: boolean;
   isDeleteOpen: boolean;
+
   selectedBlog: Blog | null;
-  form: Partial<Blog>;
+
+  form: BlogForm;
+  search: string;
 
   openCreate: () => void;
   closeCreate: () => void;
+
   openEdit: (blog: Blog) => void;
   closeEdit: () => void;
+
   openDetail: (blog: Blog) => void;
   closeDetail: () => void;
+
   openDelete: (blog: Blog) => void;
   closeDelete: () => void;
 
-  setForm: (updates: Partial<Blog>) => void;
+  setForm: (updates: Partial<BlogForm>) => void;
   resetForm: () => void;
+  setSearch: (value: string) => void;
 }
 
 export const useBlogStore = create<BlogStore>((set) => ({
@@ -41,59 +49,76 @@ export const useBlogStore = create<BlogStore>((set) => ({
   isEditOpen: false,
   isDetailOpen: false,
   isDeleteOpen: false,
+
   selectedBlog: null,
-  form: {
-    title: "",
-    excerpt: "",
-    content: "",
-    author: "ThinhStyle Team",
-    category: "Xu hướng",
-    featured: false,
-    status: "draft",
-  },
+  search: "",
+  form: { ...DEFAULT_FORM_STATE },
 
   openCreate: () =>
     set({
       isCreateOpen: true,
       selectedBlog: null,
-      form: {
-        title: "",
-        excerpt: "",
-        content: "",
-        author: "ThinhStyle Team",
-        category: "Xu hướng",
-        featured: false,
-        status: "draft",
-      },
+      form: { ...DEFAULT_FORM_STATE },
     }),
+
   closeCreate: () => set({ isCreateOpen: false }),
 
   openEdit: (blog) =>
     set({
       isEditOpen: true,
       selectedBlog: blog,
-      form: { ...blog },
-    }),
-  closeEdit: () => set({ isEditOpen: false, selectedBlog: null }),
-
-  openDetail: (blog) => set({ isDetailOpen: true, selectedBlog: blog }),
-  closeDetail: () => set({ isDetailOpen: false, selectedBlog: null }),
-
-  openDelete: (blog) => set({ isDeleteOpen: true, selectedBlog: blog }),
-  closeDelete: () => set({ isDeleteOpen: false, selectedBlog: null }),
-
-  setForm: (updates) =>
-    set((state) => ({ form: { ...state.form, ...updates } })),
-  resetForm: () =>
-    set({
       form: {
-        title: "",
-        excerpt: "",
-        content: "",
-        author: "ThinhStyle Team",
-        category: "Xu hướng",
-        featured: false,
-        status: "draft",
+        title: blog.title,
+        excerpt: blog.excerpt,
+        content: blog.content,
+        author: blog.author,
+        category: blog.category,
+        image: blog.image,
+        featured: blog.featured,
+        status: blog.status,
       },
     }),
+
+  closeEdit: () =>
+    set({
+      isEditOpen: false,
+      selectedBlog: null,
+      form: { ...DEFAULT_FORM_STATE },
+    }),
+
+  openDetail: (blog) =>
+    set({
+      isDetailOpen: true,
+      selectedBlog: blog,
+    }),
+
+  closeDetail: () =>
+    set({
+      isDetailOpen: false,
+      selectedBlog: null,
+    }),
+
+  openDelete: (blog) =>
+    set({
+      isDeleteOpen: true,
+      selectedBlog: blog,
+    }),
+
+  closeDelete: () =>
+    set({
+      isDeleteOpen: false,
+      selectedBlog: null,
+    }),
+
+  setForm: (updates) =>
+    set((state) => ({
+      form: { ...state.form, ...updates },
+    })),
+
+  resetForm: () =>
+    set({
+      form: { ...DEFAULT_FORM_STATE },
+    }),
+
+  setSearch: (value) => set({ search: value }),
 }));

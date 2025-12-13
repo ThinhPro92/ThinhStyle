@@ -1,18 +1,18 @@
 import { motion } from "framer-motion";
-import { useServiceActions } from "../hooks/useServiceActions";
-import { useServiceStore } from "../../../store/useServiceStore";
+import { useBookingActions } from "../hooks/useBookingActions";
+import { useBookingAdminStore } from "../../../store/useBookingAdminStore";
+import { format } from "date-fns";
 
-export default function DeleteServiceModal() {
-  const { isDeleteOpen, closeDelete, selectedService } = useServiceStore();
-  const { remove } = useServiceActions();
+export default function DeleteBookingModal() {
+  const { isDeleteOpen, closeDelete, selectedBooking } = useBookingAdminStore();
+  const { remove } = useBookingActions();
 
-  if (!isDeleteOpen || !selectedService) return null;
+  if (!isDeleteOpen || !selectedBooking) return null;
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
       className="fixed inset-0 bg-black/80 backdrop-blur flex items-center justify-center z-50 p-4"
       onClick={closeDelete}
     >
@@ -23,18 +23,19 @@ export default function DeleteServiceModal() {
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-2xl font-bold text-red-400 mb-4">
-          Xác nhận xóa dịch vụ
+          Xác nhận xóa lịch
         </h3>
         <p className="text-gray-300 mb-8">
-          Bạn có chắc chắn muốn xóa dịch vụ{" "}
+          Xóa lịch của{" "}
           <span className="font-bold text-orange-400">
-            "{selectedService.name}"
-          </span>
-          ?
+            {selectedBooking.customerName}
+          </span>{" "}
+          lúc {selectedBooking.time} ngày{" "}
+          {format(new Date(selectedBooking.date), "dd/MM/yyyy")}?
         </p>
         <div className="flex gap-4">
           <button
-            onClick={() => remove.mutate(selectedService._id)}
+            onClick={() => remove.mutate(selectedBooking._id)}
             className="flex-1 bg-red-600 py-4 rounded-xl font-bold hover:bg-red-700 transition"
           >
             Xóa ngay

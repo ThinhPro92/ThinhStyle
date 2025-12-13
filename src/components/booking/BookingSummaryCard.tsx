@@ -1,15 +1,16 @@
 import { format } from "date-fns";
-import type { BookingData } from "../../types";
+import type { BookingData } from "../../types/booking";
+
 interface BookingSummaryCardProps {
   data: BookingData;
   mobile?: boolean;
 }
+
 export default function BookingSummaryCard({
   data,
   mobile = false,
 }: BookingSummaryCardProps) {
-  const totalPrice =
-    data.services?.reduce((sum, service) => sum + service.price, 0) ?? 0;
+  const totalPrice = data.services?.reduce((sum, s) => sum + s.price, 0) ?? 0;
 
   return (
     <div
@@ -25,17 +26,15 @@ export default function BookingSummaryCard({
         </div>
         <div className="flex justify-between">
           <span>Dịch vụ</span>
-          <span className="font-bold">
+          <span className="font-bold max-w-xs text-right">
             {data.services?.map((s) => s.name).join(", ") || "-"}
           </span>
         </div>
         <div className="flex justify-between">
           <span>Thời gian</span>
           <span className="font-bold">
-            {data.time
-              ? `${data.time} - ${
-                  data.date ? format(new Date(data.date), "dd/MM") : ""
-                }`
+            {data.time && data.date
+              ? `${data.time} - ${format(data.date, "dd/MM/yyyy")}`
               : "-"}
           </span>
         </div>

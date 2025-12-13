@@ -1,5 +1,3 @@
-// src/components/ui/label.tsx
-
 import { forwardRef, type LabelHTMLAttributes } from "react";
 import { cn } from "../../utils/cn";
 

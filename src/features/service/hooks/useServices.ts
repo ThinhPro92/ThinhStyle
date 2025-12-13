@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import apiClient from "../../../lib/apiClient";
-import type { ApiResponse, Service } from "../../../types";
+import type { Service } from "../../../types/service";
+import type { ApiResponse } from "../../../types/common";
 
 export const useServices = () => {
   return useQuery<Service[]>({

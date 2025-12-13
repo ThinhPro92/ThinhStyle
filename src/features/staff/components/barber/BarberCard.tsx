@@ -2,9 +2,10 @@ import { Edit, Trash2, Eye } from "lucide-react";
 import { motion } from "framer-motion";
 import { Star } from "lucide-react";
 import { useBarberStore } from "../../../../store/useBarberStore";
+import type { Barber } from "../../../../types/barber";
 
 interface Props {
-  barber: any;
+  barber: Barber;
 }
 
 export default function BarberCard({ barber }: Props) {

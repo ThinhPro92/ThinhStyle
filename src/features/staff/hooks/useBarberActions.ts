@@ -2,15 +2,17 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import apiClient from "../../../lib/apiClient";
 import { useBarberStore } from "../../../store/useBarberStore";
+import type { CreateBarberData, UpdateBarberData } from "../../../types/barber";
+import { QUERY_KEYS } from "../../../constants/queryKeys";
 
 export const useBarberActions = () => {
   const queryClient = useQueryClient();
   const { closeCreate, closeEdit, closeDelete } = useBarberStore();
 
   const create = useMutation({
-    mutationFn: (data: any) => apiClient.post("/barber", data),
+    mutationFn: (data: CreateBarberData) => apiClient.post("/barber", data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["barbers"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.BARBERS });
       toast.success("Thêm thợ thành công!");
       closeCreate();
     },
@@ -18,10 +20,10 @@ export const useBarberActions = () => {
   });
 
   const update = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
+    mutationFn: ({ id, data }: { id: string; data: UpdateBarberData }) =>
       apiClient.put(`/barber/${id}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["barbers"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.BARBERS });
       toast.success("Cập nhật thành công!");
       closeEdit();
     },
@@ -30,7 +32,7 @@ export const useBarberActions = () => {
   const remove = useMutation({
     mutationFn: (id: string) => apiClient.delete(`/barber/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["barbers"] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.BARBERS });
       toast.success("Xóa thợ thành công!");
       closeDelete();
     },

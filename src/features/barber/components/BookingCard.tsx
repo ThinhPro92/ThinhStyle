@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
 import { Clock, Scissors, CheckCircle, XCircle } from "lucide-react";
+import type { Booking } from "../../../types/barber";
 
 interface Props {
-  booking: any;
+  booking: Booking;
   onUpdateStatus: (id: string, status: string) => void;
 }
 

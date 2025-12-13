@@ -1,16 +1,27 @@
-// src/pages/admin/bookings/BookingsPage.tsx
-import { useState } from "react";
+import { ArrowLeft } from "lucide-react";
+import { Link } from "react-router-dom";
 import BookingCalendar from "../../features/booking/admin/BookingCalendar";
 import BookingList from "../../features/booking/admin/BookingList";
 import CreateBookingModal from "../../features/booking/admin/CreateBookingModal";
+import EditBookingModal from "../../features/booking/admin/EditBookingModal";
+import DeleteBookingModal from "../../features/booking/admin/DeleteBookingModal";
+import { useBookingAdminStore } from "../../store/useBookingAdminStore";
 
 export default function BookingsPage() {
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const { openCreate } = useBookingAdminStore();
 
   return (
     <div className="min-h-screen bg-gray-950 text-white p-8">
       <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
+        {/* Nút quay lại */}
+        <Link
+          to="/admin/dashboard"
+          className="inline-flex items-center gap-2 text-orange-400 hover:text-orange-300 transition mb-4"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          Quay lại Dashboard
+        </Link>
+
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-5xl font-bold bg-gradient-to-r from-orange-500 to-red-600 bg-clip-text text-transparent">
@@ -21,7 +32,7 @@ export default function BookingsPage() {
             </p>
           </div>
           <button
-            onClick={() => setIsCreateOpen(true)}
+            onClick={openCreate}
             className="bg-gradient-to-r from-orange-500 to-red-600 px-8 py-4 rounded-2xl font-bold text-xl hover:scale-105 transition shadow-2xl flex items-center gap-3"
           >
             <svg
@@ -41,18 +52,15 @@ export default function BookingsPage() {
           </button>
         </div>
 
-        {/* Calendar + List */}
         <div className="grid lg:grid-cols-2 gap-8">
           <BookingCalendar />
           <BookingList />
         </div>
-      </div>
 
-      {/* ĐÃ SỬA – THÊM 2 PROPS BỊ THIẾU */}
-      <CreateBookingModal
-        isOpen={isCreateOpen}
-        onClose={() => setIsCreateOpen(false)}
-      />
+        <CreateBookingModal />
+        <EditBookingModal />
+        <DeleteBookingModal />
+      </div>
     </div>
   );
 }

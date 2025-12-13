@@ -1,17 +1,17 @@
-import { X, Calendar, Clock, Phone, Star, MapPin } from "lucide-react";
+import { X, Calendar, Clock, Phone, Star } from "lucide-react";
 import { motion } from "framer-motion";
-
 import { useQuery } from "@tanstack/react-query";
 import { useBarberStore } from "../../../../store/useBarberStore";
 import apiClient from "../../../../lib/apiClient";
+import type { Booking } from "../../../../types/barber";
+import { QUERY_KEYS } from "../../../../constants/queryKeys";
 
 const days = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
 
 export default function DetailBarberModal() {
   const { isDetailOpen, closeDetail, selectedBarber } = useBarberStore();
-
-  const { data: bookings = [] } = useQuery({
-    queryKey: ["bookings", selectedBarber?._id],
+  const { data: bookings = [] } = useQuery<Booking[]>({
+    queryKey: QUERY_KEYS.BOOKINGS(selectedBarber?._id || ""),
     queryFn: async () => {
       const res = await apiClient.get(
         `/bookings/barber/${selectedBarber?._id}`
@@ -20,9 +20,7 @@ export default function DetailBarberModal() {
     },
     enabled: !!selectedBarber?._id,
   });
-
   if (!isDetailOpen || !selectedBarber) return null;
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -77,11 +75,11 @@ export default function DetailBarberModal() {
             onClick={closeDetail}
             className="p-4 hover:bg-white/10 rounded-xl"
           >
-            <X className="w-8 h-8" />
+            {" "}
             {}
+            <X className="w-8 h-8" />
           </button>
         </div>
-
         <div className="grid lg:grid-cols-2 gap-8">
           <div>
             <h3 className="text-2xl font-bold mb-4 flex items-center gap-3">
@@ -110,7 +108,6 @@ export default function DetailBarberModal() {
               ))}
             </div>
           </div>
-
           <div>
             <h3 className="text-2xl font-bold mb-4 flex items-center gap-3">
               <Clock className="w-7 h-7 text-orange-500" /> Lịch đặt hôm nay
@@ -121,7 +118,7 @@ export default function DetailBarberModal() {
                   Chưa có lịch đặt nào
                 </p>
               ) : (
-                bookings.map((b: any) => (
+                bookings.map((b: Booking) => (
                   <div
                     key={b._id}
                     className="bg-gray-800/50 border border-gray-700 rounded-xl p-6 hover:border-orange-500/50 transition"

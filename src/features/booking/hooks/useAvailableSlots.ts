@@ -1,27 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
 import apiClient from "../../../lib/apiClient";
-
-interface AvailableSlotsResponse {
-  availableSlots: string[];
-  bookedSlots: string[];
-}
+import { QUERY_KEYS } from "../../../constants/queryKeys";
+import { format } from "date-fns";
 
 export const useAvailableSlots = (date: Date, barberId?: string) => {
-  const formattedDate = format(date, "yyyy-MM-dd");
-
   return useQuery({
-    queryKey: ["availableSlots", formattedDate, barberId],
-    queryFn: async (): Promise<AvailableSlotsResponse> => {
-      const res = await apiClient.get("/available-slots", {
-        params: {
-          date: formattedDate,
-          barberId: barberId || "6928706f7f8faf6bf17a0aea",
-        },
+    queryKey: QUERY_KEYS.AVAILABLE_SLOTS(format(date, "yyyy-MM-dd"), barberId),
+    queryFn: async () => {
+      const res = await apiClient.get(`/bookings/available-slots`, {
+        params: { date: format(date, "yyyy-MM-dd"), barberId },
       });
       return res.data.data;
     },
-    enabled: !!date && !!barberId,
-    staleTime: 1000 * 60 * 2,
+    enabled: !!barberId,
   });
 };

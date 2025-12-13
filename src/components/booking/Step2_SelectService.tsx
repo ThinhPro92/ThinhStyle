@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useServices } from "../../features/service/hooks/useServices";
 import { Button } from "../ui/button";
-import type { Service, Step2Props } from "../../types";
+import type { Step2Props } from "../../types/booking";
+import type { Service } from "../../types/service";
 
 export default function Step2_SelectService({
   onNext,

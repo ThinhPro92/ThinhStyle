@@ -1,11 +1,10 @@
-// src/features/admin/services/components/ServiceCard.tsx
 import { Edit, Trash2, Clock } from "lucide-react";
-
 import { motion } from "framer-motion";
+import type { Service } from "../../../types/service";
 import { useServiceStore } from "../../../store/useServiceStore";
 
 interface Props {
-  service: any;
+  service: Service;
 }
 
 export default function ServiceCard({ service }: Props) {
@@ -26,14 +25,14 @@ export default function ServiceCard({ service }: Props) {
         />
       ) : (
         <div className="w-full h-48 bg-gray-800 flex items-center justify-center">
-          <div className="text-6xl text-gray-600">Scissors</div>
+          <span className="text-6xl text-gray-600">Scissors</span>
         </div>
       )}
 
       <div className="p-6">
         <h3 className="text-2xl font-bold mb-2">{service.name}</h3>
         <p className="text-orange-400 text-3xl font-bold mb-2">
-          {service.price.toLocaleString()}đ
+          {service.price.toLocaleString("vi-VN")}đ
         </p>
         <div className="flex items-center gap-2 text-gray-400 mb-4">
           <Clock className="w-5 h-5" />
@@ -45,7 +44,7 @@ export default function ServiceCard({ service }: Props) {
 
         <div className="flex justify-between items-center mt-6">
           <span
-            className={`px-3 py-1 rounded-full text-sm ${
+            className={`px-3 py-1 rounded-full text-sm font-medium ${
               service.isActive
                 ? "bg-green-500/20 text-green-400"
                 : "bg-red-500/20 text-red-400"
@@ -53,16 +52,19 @@ export default function ServiceCard({ service }: Props) {
           >
             {service.isActive ? "Đang bán" : "Tạm ẩn"}
           </span>
+
           <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition">
             <button
               onClick={() => openEdit(service)}
-              className="p-3 bg-blue-500/20 hover:bg-blue-500/40 rounded-xl"
+              className="p-3 bg-blue-500/20 hover:bg-blue-500/40 rounded-xl transition"
+              aria-label="Sửa dịch vụ"
             >
               <Edit className="w-5 h-5" />
             </button>
             <button
               onClick={() => openDelete(service)}
-              className="p-3 bg-red-500/20 hover:bg-red-500/40 rounded-xl"
+              className="p-3 bg-red-500/20 hover:bg-red-500/40 rounded-xl transition"
+              aria-label="Xóa dịch vụ"
             >
               <Trash2 className="w-5 h-5" />
             </button>

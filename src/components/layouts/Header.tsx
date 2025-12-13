@@ -14,7 +14,6 @@ export default function Header() {
     <header className="bg-header text-white sticky top-0 z-50 shadow-lg">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 lg:h-20">
-          {/* Logo */}
           <Link to="/" className="flex items-center space-x-3 group">
             <Scissors className="w-8 h-8 text-accent group-hover:rotate-12 transition-transform" />
             <div>
@@ -25,7 +24,6 @@ export default function Header() {
             </div>
           </Link>
 
-          {/* Desktop Menu */}
           <nav className="hidden lg:flex items-center space-x-8">
             <Link to="/" className="hover:text-accent transition">
               Trang chủ
@@ -44,7 +42,6 @@ export default function Header() {
             </Link>
           </nav>
 
-          {/* CTA */}
           <div className="flex items-center space-x-4">
             <div className="hidden md:flex items-center space-x-2 text-sm">
               <Phone className="w-4 h-4" />
@@ -59,7 +56,6 @@ export default function Header() {
             </Button>
             <ThemeToggle />
 
-            {/* Mobile */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="lg:hidden"

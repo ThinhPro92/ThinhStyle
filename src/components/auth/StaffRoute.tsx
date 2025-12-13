@@ -1,14 +1,11 @@
-// src/components/auth/StaffRoute.tsx
-import toast from "react-hot-toast";
 import { Navigate, Outlet } from "react-router-dom";
+import { useStaffStore } from "../../store/useStaffStore";
+import toast from "react-hot-toast";
 
 export const StaffRoute = () => {
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("staffToken") : null;
-  const role =
-    typeof window !== "undefined" ? localStorage.getItem("staffRole") : null;
+  const { isLoading, isAuthenticated, user } = useStaffStore();
 
-  if (token === null || role === null) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <div className="animate-spin w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full" />
@@ -16,12 +13,11 @@ export const StaffRoute = () => {
     );
   }
 
-  if (!token || !role) {
+  if (!isAuthenticated || !user) {
     return <Navigate to="/staff/login" replace />;
   }
 
-  if (role !== "admin" && role !== "barber") {
-    localStorage.clear();
+  if (user.role !== "admin" && user.role !== "barber") {
     toast.error("Truy cập bị từ chối!");
     return <Navigate to="/" replace />;
   }

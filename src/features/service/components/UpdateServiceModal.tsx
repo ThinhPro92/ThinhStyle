@@ -1,16 +1,55 @@
-// src/features/admin/services/components/UpdateServiceModal.tsx
-import { Plus, X } from "lucide-react";
+import { X } from "lucide-react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useServiceActions } from "../hooks/useServiceActions";
+import { useLayoutEffect, startTransition } from "react";
+import type { z } from "zod";
+import { updateServiceSchema } from "../../../validates/ServiceSchema";
 import { useServiceStore } from "../../../store/useServiceStore";
+import type { UpdateServiceData } from "../../../types/service";
+
+type FormData = z.infer<typeof updateServiceSchema>;
 
 export default function UpdateServiceModal() {
   const { isEditOpen, closeEdit, selectedService, form, setForm } =
     useServiceStore();
   const { update } = useServiceActions();
 
-  const uploadImage = async (file: File) => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<FormData>({
+    resolver: zodResolver(updateServiceSchema),
+  });
+
+  useLayoutEffect(() => {
+    if (selectedService && isEditOpen) {
+      reset({
+        name: selectedService.name,
+        price: selectedService.price,
+        duration: selectedService.duration,
+        description: selectedService.description ?? "",
+        isActive: selectedService.isActive,
+      });
+
+      startTransition(() => {
+        setForm({
+          name: selectedService.name,
+          price: selectedService.price,
+          duration: selectedService.duration,
+          description: selectedService.description ?? "",
+          image: selectedService.image ?? "",
+          isActive: selectedService.isActive,
+        });
+      });
+    }
+  }, [selectedService, isEditOpen, reset, setForm]);
+
+  const uploadImage = async (file: File): Promise<string> => {
     const data = new FormData();
     data.append("file", file);
     data.append("upload_preset", "thinhstyle");
@@ -25,12 +64,13 @@ export default function UpdateServiceModal() {
     return json.secure_url;
   };
 
-  const handleSubmit = () => {
-    if (!form.name || form.price <= 0) return toast.error("Thiếu thông tin!");
-    update.mutate({
-      id: selectedService!._id,
-      data: form,
-    });
+  const onSubmit = (data: FormData) => {
+    const payload: UpdateServiceData = {
+      ...data,
+      image: form.image || undefined,
+    };
+
+    update.mutate({ id: selectedService!._id, data: payload });
   };
 
   if (!isEditOpen || !selectedService) return null;
@@ -45,7 +85,7 @@ export default function UpdateServiceModal() {
       <motion.div
         initial={{ scale: 0.9 }}
         animate={{ scale: 1 }}
-        className="bg-gradient-to-br from-gray-900 to-black border border-orange-500/50 rounded-2xl p-8 max-w-2xl w-full"
+        className="bg-gradient-to-br from-gray-900 to-black border border-orange-500/50 rounded-2xl p-8 max-w-2xl w-full max-h-screen overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-8">
@@ -54,28 +94,30 @@ export default function UpdateServiceModal() {
           </h2>
           <button
             onClick={closeEdit}
-            className="p-3 hover:bg-white/10 rounded-xl"
+            className="p-3 hover:bg-white/10 rounded-xl transition"
           >
-            <X className="w-7 h-7" />
+            {} <X className="w-7 h-7" />
           </button>
         </div>
 
-        <div className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="flex justify-center">
-            <label className="cursor-pointer">
+            <label className="cursor-pointer group">
               {form.image ? (
                 <img
                   src={form.image}
-                  className="w-48 h-48 rounded-xl object-cover border-4 border-orange-500"
+                  alt="Preview"
+                  className="w-48 h-48 rounded-xl object-cover border-4 border-orange-500 group-hover:opacity-90 transition"
                 />
               ) : (
-                <div className="w-48 h-48 bg-gray-800 rounded-xl border-4 border-dashed border-orange-500 flex items-center justify-center">
-                  <Plus className="w-16 h-16 text-orange-500" />
+                <div className="w-48 h-48 bg-gray-800 rounded-xl border-4 border-dashed border-orange-500 flex items-center justify-center group-hover:bg-gray-700 transition">
+                  <span className="text-6xl text-orange-500">+</span>
                 </div>
               )}
               <input
                 type="file"
                 accept="image/*"
+                className="hidden"
                 onChange={async (e) => {
                   if (e.target.files?.[0]) {
                     const url = await uploadImage(e.target.files[0]);
@@ -83,57 +125,73 @@ export default function UpdateServiceModal() {
                     toast.success("Upload ảnh thành công!");
                   }
                 }}
-                className="hidden"
               />
             </label>
           </div>
 
-          <input
-            value={form.name}
-            onChange={(e) => setForm({ name: e.target.value })}
-            placeholder="Tên dịch vụ"
-            className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none"
-          />
-          <input
-            type="number"
-            value={form.price}
-            onChange={(e) => setForm({ price: +e.target.value })}
-            placeholder="Giá (VNĐ)"
-            className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none"
-          />
-          <input
-            type="number"
-            value={form.duration}
-            onChange={(e) => setForm({ duration: +e.target.value })}
-            placeholder="Thời gian (phút)"
-            className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none"
-          />
-          <textarea
-            value={form.description}
-            onChange={(e) => setForm({ description: e.target.value })}
-            placeholder="Mô tả"
-            rows={3}
-            className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none"
-          />
-
-          <div className="flex items-center gap-4">
+          <div>
             <input
-              type="checkbox"
-              checked={form.isActive}
-              onChange={(e) => setForm({ isActive: e.target.checked })}
-              className="w-6 h-6"
+              {...register("name")}
+              placeholder="Tên dịch vụ *"
+              className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none transition"
             />
-            <label>Hiển thị trên trang khách</label>
+            {errors.name && (
+              <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+            )}
           </div>
 
+          <div>
+            <input
+              {...register("price", { valueAsNumber: true })}
+              type="number"
+              placeholder="Giá (VNĐ) *"
+              className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none transition"
+            />
+            {errors.price && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.price.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <input
+              {...register("duration", { valueAsNumber: true })}
+              type="number"
+              placeholder="Thời gian (phút) *"
+              className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none transition"
+            />
+            {errors.duration && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.duration.message}
+              </p>
+            )}
+          </div>
+
+          <textarea
+            {...register("description")}
+            placeholder="Mô tả dịch vụ"
+            rows={3}
+            className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none resize-none transition"
+          />
+
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              {...register("isActive")}
+              className="w-6 h-6 rounded accent-orange-500"
+            />
+            <span className="text-lg">Hiển thị trên trang khách</span>
+          </label>
+
           <button
-            onClick={handleSubmit}
+            type="submit"
             disabled={update.isPending}
-            className="w-full bg-gradient-to-r from-orange-500 to-red-600 py-5 rounded-xl font-bold text-xl hover:scale-105 transition disabled:opacity-50"
+            className="w-full bg-gradient-to-r from-orange-500 to-red-600 py-5 rounded-xl font-bold text-xl hover:scale-105 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {update.isPending ? "Đang cập nhật..." : "Cập Nhật Dịch Vụ"}
           </button>
-        </div>
+        </form>
       </motion.div>
     </motion.div>
   );

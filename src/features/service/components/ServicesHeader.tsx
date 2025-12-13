@@ -1,4 +1,3 @@
-// src/features/admin/services/components/ServicesHeader.tsx
 import { Plus, Search } from "lucide-react";
 import { useServiceStore } from "../../../store/useServiceStore";
 
@@ -16,10 +15,10 @@ export default function ServicesHeader() {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
             type="text"
-            placeholder="Tìm kiếm dịch vụ..."
+            placeholder="Tìm dịch vụ..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-12 pr-4 py-3 bg-gray-900/50 border border border-gray-700 rounded-xl focus:border-orange-500 outline-none w-full sm:w-80 transition"
+            className="pl-12 pr-4 py-3 bg-gray-900/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none w-full sm:w-80 transition"
           />
         </div>
 

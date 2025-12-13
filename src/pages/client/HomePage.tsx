@@ -1,8 +1,8 @@
-import BlogsSection from "../../components/sections/BlogsSection";
-import HeroBanner from "../../components/sections/HeroBanner";
-import ReviewsSection from "../../components/sections/ReviewsSection";
-import ServicesSection from "../../components/sections/ServicesSection";
-import TopBarbers from "../../components/sections/TopBarbers";
+import BlogsSection from "../../components/sectionsLayout/BlogsSection";
+import HeroBanner from "../../components/sectionsLayout/HeroBanner";
+import ReviewsSection from "../../components/sectionsLayout/ReviewsSection";
+import ServicesSection from "../../components/sectionsLayout/ServicesSection";
+import TopBarbers from "../../components/sectionsLayout/TopBarbers";
 
 export default function HomePage() {
   return (

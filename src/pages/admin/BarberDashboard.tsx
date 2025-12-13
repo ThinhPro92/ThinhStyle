@@ -5,19 +5,20 @@ import BarberHeader from "../../features/barber/components/BarberHeader";
 import BarberStats from "../../features/barber/components/BarberStats";
 import BookingList from "../../features/barber/components/BookingList";
 import HistoryList from "../../features/barber/components/HistoryList";
+import type { BarberAdmin, BarberSocket } from "../../types/barber";
 
-const socket = io("https://api-class-o1lo.onrender.com", {
+const socket: BarberSocket = io("https://api-class-o1lo.onrender.com", {
   auth: { token: localStorage.getItem("staffToken") },
 });
 
 export default function BarberDashboard() {
   const [activeTab, setActiveTab] = useState<"today" | "history">("today");
-
-  const staffUser = JSON.parse(localStorage.getItem("staffUser") || "{}");
+  const staffUser: BarberAdmin = JSON.parse(
+    localStorage.getItem("staffUser") || "{}"
+  );
   const hasChangedPassword =
     localStorage.getItem("hasChangedPassword") === "true";
 
-  // Bắt buộc đổi mật khẩu lần đầu
   if (!hasChangedPassword) {
     return <ChangePasswordModal onSuccess={() => window.location.reload()} />;
   }
@@ -33,11 +34,8 @@ export default function BarberDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-950 to-black text-white">
       <BarberHeader socket={socket} staffUser={staffUser} />
-
       <div className="max-w-7xl mx-auto p-8">
         <BarberStats staffUser={staffUser} />
-
-        {/* Tab chuyển đổi */}
         <div className="flex gap-4 mb-8 border-b border-gray-800">
           <button
             onClick={() => setActiveTab("today")}
@@ -60,7 +58,6 @@ export default function BarberDashboard() {
             Lịch sử cắt tóc
           </button>
         </div>
-
         {activeTab === "today" ? (
           <BookingList socket={socket} staffUser={staffUser} />
         ) : (

@@ -1,28 +1,25 @@
 import { Check } from "lucide-react";
-import type { BookingData } from "../../types";
+import type { BookingData } from "../../types/booking";
 
 const steps = ["Chọn thợ", "Dịch vụ", "Ngày giờ", "Xác nhận"];
 
 interface BookingStepperProps {
   currentStep: number;
-  bookingData: BookingData; // THÊM CÁI NÀY – QUAN TRỌNG NHẤT!
+  bookingData: BookingData;
 }
 
 export default function BookingStepper({
   currentStep,
   bookingData,
 }: BookingStepperProps) {
-  // Logic kiểm tra bước nào đã hoàn thành thật sự
   const isStepCompleted = (step: number): boolean => {
     switch (step) {
       case 1:
-        return !!bookingData.barber; // Chỉ hoàn thành khi đã chọn thợ
+        return !!bookingData.barber;
       case 2:
         return !!bookingData.services && bookingData.services.length > 0;
       case 3:
         return !!bookingData.date && !!bookingData.time;
-      case 4:
-        return false; // Bước cuối chưa bao giờ hoàn thành trước khi xác nhận
       default:
         return false;
     }
@@ -40,39 +37,41 @@ export default function BookingStepper({
           <div key={i} className="flex items-center">
             <div
               className={`relative w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg transition-all duration-300
+                ${isCompleted ? "bg-orange-500 text-white shadow-lg" : ""}
                 ${
-                  isCompleted
-                    ? "bg-accent text-white shadow-lg"
-                    : isActive
-                    ? "bg-accent text-white ring-8 ring-accent/20 scale-110"
-                    : isFuture
-                    ? "bg-gray-200 text-gray-500"
-                    : "bg-gray-300 text-gray-600"
-                }`}
+                  isActive
+                    ? "bg-orange-500 text-white ring-8 ring-orange-500/20 scale-110"
+                    : ""
+                }
+                ${isFuture ? "bg-gray-300 text-gray-600" : ""}
+                ${
+                  !isCompleted && !isActive && !isFuture
+                    ? "bg-gray-400 text-gray-700"
+                    : ""
+                }
+              `}
             >
               {isCompleted ? <Check className="w-6 h-6" /> : stepNumber}
             </div>
-
-            <div className="hidden sm:block ml-3">
+            <div className="hidden sm:block ml-4">
               <p
-                className={`text-sm font-medium transition-colors
-                ${isCompleted || isActive ? "text-accent" : "text-gray-500"}
-              `}
+                className={`text-sm font-medium transition-colors ${
+                  isCompleted || isActive ? "text-orange-500" : "text-gray-500"
+                }`}
               >
                 {label}
               </p>
             </div>
-
-            {/* Đường nối giữa các bước */}
-            {i < 3 && (
+            {i < steps.length - 1 && (
               <div
-                className={`w-24 h-1 mx-4 transition-all duration-500
+                className={`w-24 h-1 mx-6 transition-all duration-500
                   ${
                     isStepCompleted(stepNumber + 1) ||
                     (isActive && stepNumber === currentStep)
-                      ? "bg-accent"
+                      ? "bg-orange-500"
                       : "bg-gray-300"
-                  }`}
+                  }
+                `}
               />
             )}
           </div>

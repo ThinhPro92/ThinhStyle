@@ -1,4 +1,3 @@
-// src/pages/client/BlogPage.tsx
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Search, Calendar, Clock, User, ChevronRight } from "lucide-react";
@@ -106,7 +105,6 @@ export default function BlogPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-gray-950 dark:to-black py-16">
       <div className="container mx-auto px-4 max-w-7xl">
-        {/* Hero */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -121,7 +119,6 @@ export default function BlogPage() {
           </p>
         </motion.div>
 
-        {/* Featured Blog */}
         {featuredBlog && (
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -163,7 +160,6 @@ export default function BlogPage() {
           </motion.div>
         )}
 
-        {/* Filters */}
         <div className="mb-12">
           <div className="flex flex-col md:flex-row gap-6 items-center justify-between">
             <div className="flex gap-3 flex-wrap">
@@ -195,7 +191,6 @@ export default function BlogPage() {
           </div>
         </div>
 
-        {/* Blog Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredBlogs.map((blog, index) => (
             <motion.article
@@ -248,7 +243,6 @@ export default function BlogPage() {
           ))}
         </div>
 
-        {/* Load More */}
         <div className="text-center mt-16">
           <button className="bg-gradient-to-r from-orange-500 to-red-600 text-white px-12 py-5 rounded-full text-xl font-bold hover:scale-105 transition shadow-2xl">
             Xem thêm bài viết

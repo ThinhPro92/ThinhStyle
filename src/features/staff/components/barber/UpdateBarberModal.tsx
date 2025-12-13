@@ -1,37 +1,50 @@
-import { useState } from "react";
 import { X } from "lucide-react";
 import { motion } from "framer-motion";
-import toast from "react-hot-toast";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useBarberStore } from "../../../../store/useBarberStore";
 import { useBarberActions } from "../../hooks/useBarberActions";
+import { startTransition, useLayoutEffect, useState } from "react";
+import { updateBarberSchema } from "../../../../validates/BarberSchema";
+import type { z } from "zod";
+import type { UpdateBarberData, WorkingHours } from "../../../../types/barber";
+
+type FormData = z.infer<typeof updateBarberSchema>;
 
 const days = ["Chủ nhật", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7"];
 
 export default function UpdateBarberModal() {
   const { isEditOpen, closeEdit, selectedBarber } = useBarberStore();
   const { update } = useBarberActions();
-  const [avatar, setAvatar] = useState(selectedBarber?.avatar || "");
+  const [avatar, setAvatar] = useState("");
+  const [workingHours, setWorkingHours] = useState<WorkingHours>({});
 
-  const [form, setForm] = useState({
-    name: selectedBarber?.name || "",
-    phone: selectedBarber?.phone || "",
-    email: selectedBarber?.email || "",
-    description: selectedBarber?.description || "",
-    commission: selectedBarber?.commission || 40,
-    status: selectedBarber?.status || "active",
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<FormData>({
+    resolver: zodResolver(updateBarberSchema),
   });
 
-  const [workingHours, setWorkingHours] = useState(
-    selectedBarber?.workingHours || {
-      "0": { isWorking: false },
-      "1": { isWorking: true, start: "09:00", end: "21:00" },
-      "2": { isWorking: true, start: "09:00", end: "21:00" },
-      "3": { isWorking: true, start: "09:00", end: "21:00" },
-      "4": { isWorking: true, start: "09:00", end: "21:00" },
-      "5": { isWorking: true, start: "09:00", end: "21:00" },
-      "6": { isWorking: true, start: "09:00", end: "21:00" },
+  useLayoutEffect(() => {
+    if (selectedBarber && isEditOpen) {
+      reset({
+        name: selectedBarber.name,
+        phone: selectedBarber.phone,
+        email: selectedBarber.email,
+        description: selectedBarber.description,
+        commission: selectedBarber.commission,
+        status: selectedBarber.status,
+      });
+
+      startTransition(() => {
+        setAvatar(selectedBarber.avatar || "");
+        setWorkingHours(selectedBarber.workingHours || {});
+      });
     }
-  );
+  }, [selectedBarber, isEditOpen, reset]);
 
   const uploadImage = async (file: File) => {
     const data = new FormData();
@@ -45,12 +58,15 @@ export default function UpdateBarberModal() {
     return json.secure_url;
   };
 
-  const handleSubmit = async () => {
-    if (!form.name || !form.phone)
-      return toast.error("Thiếu thông tin bắt buộc!");
+  const onSubmit = (data: FormData) => {
+    const payload: UpdateBarberData = {
+      ...data,
+      avatar,
+      workingHours,
+    };
     update.mutate({
       id: selectedBarber!._id,
-      data: { ...form, avatar, workingHours },
+      data: payload,
     });
   };
 
@@ -77,12 +93,14 @@ export default function UpdateBarberModal() {
             onClick={closeEdit}
             className="p-3 hover:bg-white/10 rounded-xl"
           >
-            <X className="w-7 h-7" />
             {}
+            <X className="w-7 h-7" />
           </button>
         </div>
-
-        <div className="grid lg:grid-cols-2 gap-8">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="grid lg:grid-cols-2 gap-8"
+        >
           <div className="space-y-6">
             <div className="flex justify-center">
               <label className="cursor-pointer">
@@ -108,30 +126,35 @@ export default function UpdateBarberModal() {
                 />
               </label>
             </div>
-
             <input
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              {...register("name")}
               placeholder="Họ tên"
               className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none"
             />
+            {errors.name && (
+              <p className="text-red-500">{errors.name.message}</p>
+            )}
+
             <input
-              value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              {...register("phone")}
               placeholder="Số điện thoại"
               className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none"
             />
+            {errors.phone && (
+              <p className="text-red-500">{errors.phone.message}</p>
+            )}
+
             <input
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              {...register("email")}
               placeholder="Email"
               className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none"
             />
+            {errors.email && (
+              <p className="text-red-500">{errors.email.message}</p>
+            )}
+
             <textarea
-              value={form.description}
-              onChange={(e) =>
-                setForm({ ...form, description: e.target.value })
-              }
+              {...register("description")}
               placeholder="Mô tả"
               rows={4}
               className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none"
@@ -141,24 +164,17 @@ export default function UpdateBarberModal() {
               <span>Hoa hồng (%)</span>
               <input
                 type="number"
-                value={form.commission}
-                onChange={(e) =>
-                  setForm({ ...form, commission: +e.target.value })
-                }
+                {...register("commission", { valueAsNumber: true })}
                 className="w-24 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-center"
               />
+              {errors.commission && (
+                <p className="text-red-500">{errors.commission.message}</p>
+              )}
             </div>
-
             <div className="flex items-center justify-between">
               <span>Trạng thái</span>
               <select
-                value={form.status}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    status: e.target.value as "active" | "inactive",
-                  })
-                }
+                {...register("status")}
                 className="px-6 py-3 bg-gray-800 border border-gray-700 rounded-xl"
               >
                 <option value="active">Đang làm việc</option>
@@ -166,7 +182,6 @@ export default function UpdateBarberModal() {
               </select>
             </div>
           </div>
-
           <div>
             <h3 className="text-xl font-bold mb-4">Giờ làm việc</h3>
             <div className="space-y-3">
@@ -175,6 +190,7 @@ export default function UpdateBarberModal() {
                   <span className="w-24 text-sm">{days[+day]}</span>
                   <input
                     type="checkbox"
+                    aria-label={`Trạng thái làm việc ngày ${days[+day]}`}
                     checked={workingHours[day].isWorking}
                     onChange={(e) =>
                       setWorkingHours((prev) => ({
@@ -188,6 +204,7 @@ export default function UpdateBarberModal() {
                     <>
                       <input
                         type="time"
+                        aria-label={`Giờ bắt đầu ${days[+day]}`}
                         value={workingHours[day].start || "09:00"}
                         onChange={(e) =>
                           setWorkingHours((prev) => ({
@@ -200,6 +217,7 @@ export default function UpdateBarberModal() {
                       <span>-</span>
                       <input
                         type="time"
+                        aria-label={`Giờ kết thúc ${days[+day]}`}
                         value={workingHours[day].end || "21:00"}
                         onChange={(e) =>
                           setWorkingHours((prev) => ({
@@ -215,15 +233,14 @@ export default function UpdateBarberModal() {
               ))}
             </div>
           </div>
-        </div>
-
-        <button
-          onClick={handleSubmit}
-          disabled={update.isPending}
-          className="w-full mt-8 bg-gradient-to-r from-orange-500 to-red-600 py-5 rounded-xl font-bold text-xl hover:scale-105 transition"
-        >
-          {update.isPending ? "Đang cập nhật..." : "Cập Nhật Ngay"}
-        </button>
+          <button
+            type="submit"
+            disabled={update.isPending}
+            className="w-full mt-8 bg-gradient-to-r from-orange-500 to-red-600 py-5 rounded-xl font-bold text-xl hover:scale-105 transition"
+          >
+            {update.isPending ? "Đang cập nhật..." : "Cập Nhật Ngay"}
+          </button>
+        </form>
       </motion.div>
     </motion.div>
   );

@@ -32,7 +32,7 @@ export default function DetailBlogModal() {
             onClick={closeDetail}
             className="absolute top-4 right-4 p-3 bg-black/50 hover:bg-black/70 rounded-xl text-white"
           >
-            <X className="w-7 h-7" />
+            {} <X className="w-7 h-7" />
           </button>
         </div>
 

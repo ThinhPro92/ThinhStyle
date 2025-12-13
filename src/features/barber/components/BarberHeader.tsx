@@ -1,9 +1,7 @@
 import { Phone, Calendar, ToggleLeft, ToggleRight } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { Socket } from "socket.io-client";
-import type { BarberAdmin } from "../../../types/admin/barberAdmin";
-export type BarberSocket = Socket;
+import type { BarberAdmin, BarberSocket } from "../../../types/barber";
 interface Props {
   socket: BarberSocket;
   staffUser: BarberAdmin;

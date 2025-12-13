@@ -1,50 +1,106 @@
 import { X } from "lucide-react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
-
-import { useEditor } from "@tiptap/react";
+import { useForm, type SubmitHandler } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
+import { useLayoutEffect } from "react";
+
 import { useBlogStore } from "../../../store/useBlogStore";
 import { useBlogActions } from "../hooks/useBlogActions";
+import { createBlogSchema } from "../../../validates/BlogSchema";
+import type { z } from "zod";
+
+type FormData = z.infer<typeof createBlogSchema>;
 
 export default function CreateBlogModal() {
   const { isCreateOpen, closeCreate, form, setForm } = useBlogStore();
   const { create } = useBlogActions();
 
-  const editor = useEditor({
-    extensions: [StarterKit, Image],
-    content: form.content,
-    onUpdate: ({ editor }) => setForm({ content: editor.getHTML() }),
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+    reset,
+  } = useForm<FormData>({
+    resolver: zodResolver(createBlogSchema),
+    defaultValues: {
+      author: "ThinhStyle Team",
+      category: "Xu hướng",
+      featured: false,
+      status: "draft",
+    },
   });
 
-  const uploadImage = async (file: File) => {
-    const data = new FormData();
-    data.append("file", file);
-    data.append("upload_preset", "thinhstyle");
-    const res = await fetch(
-      "https://api.cloudinary.com/v1_1/dvzhf7x8t/image/upload",
-      { method: "POST", body: data }
-    );
-    const json = await res.json();
-    return json.secure_url;
+  const editor = useEditor({
+    extensions: [StarterKit, Image],
+    content: "",
+    onUpdate: ({ editor }) => {
+      const html = editor.getHTML();
+      setForm({ content: html });
+      setValue("content", html);
+    },
+  });
+
+  useLayoutEffect(() => {
+    if (isCreateOpen) {
+      reset();
+      editor?.commands.setContent("");
+      setForm({
+        title: "",
+        excerpt: "",
+        content: "",
+        image: undefined,
+      });
+    }
+  }, [isCreateOpen, reset, editor, setForm]);
+
+  const uploadImage = async (file: File): Promise<string | null> => {
+    try {
+      const data = new FormData();
+      data.append("file", file);
+      data.append("upload_preset", "thinhstyle");
+      const res = await fetch(
+        "https://api.cloudinary.com/v1_1/dvzhf7x8t/image/upload",
+        {
+          method: "POST",
+          body: data,
+        }
+      );
+      const json = await res.json();
+      return json.secure_url;
+    } catch {
+      toast.error("Lỗi upload ảnh");
+      return null;
+    }
   };
 
-  const handleImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCoverImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const url = await uploadImage(file);
-    setForm({ image: url });
-    toast.success("Upload ảnh bìa thành công!");
+    if (url) {
+      setForm({ image: url });
+      setValue("image", url);
+    }
   };
 
-  const handleSubmit = () => {
-    if (!form.title || !form.content)
-      return toast.error("Nhập tiêu đề và nội dung!");
-    create.mutate({
-      ...form,
-      slug: form.title.toLowerCase().replace(/ /g, "-"),
-    });
+  const handleInsertImage = async (file: File) => {
+    const url = await uploadImage(file);
+    if (url) editor?.chain().focus().setImage({ src: url }).run();
+  };
+
+  const onSubmit: SubmitHandler<FormData> = (data) => {
+    const payload = {
+      ...data,
+      slug: data.title.toLowerCase().replace(/\s+/g, "-"),
+      image: form.image,
+      content: editor?.getHTML() || data.content,
+    };
+    create.mutate(payload);
   };
 
   if (!isCreateOpen) return null;
@@ -53,13 +109,13 @@ export default function CreateBlogModal() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="fixed inset-0 bg-black/90 backdrop-blur z-50 flex items-center justify-center"
+      className="fixed inset-0 bg-black/90 backdrop-blur z-50 flex items-center justify-center p-4"
       onClick={closeCreate}
     >
       <motion.div
         initial={{ scale: 0.95 }}
         animate={{ scale: 1 }}
-        className="w-full h-full max-w-7xl mx-8 bg-gradient-to-br from-gray-900 to-black border border-orange-500/30 rounded-3xl overflow-hidden"
+        className="w-full max-w-7xl bg-gradient-to-br from-gray-900 to-black border border-orange-500/30 rounded-3xl overflow-hidden max-h-screen"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center p-6 border-b border-gray-800">
@@ -68,94 +124,92 @@ export default function CreateBlogModal() {
           </h2>
           <button
             onClick={closeCreate}
-            className="p-3 hover:bg-white/10 rounded-xl"
+            aria-label="X"
+            className="p-3 hover:bg-white/10 rounded-xl transition"
           >
             <X className="w-8 h-8" />
           </button>
         </div>
 
-        <div className="grid lg:grid-cols-3 h-full">
-          {/* Left: Form */}
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="grid lg:grid-cols-3 h-full overflow-hidden"
+        >
           <div className="lg:col-span-1 p-8 space-y-6 border-r border-gray-800 overflow-y-auto">
             <input
-              value={form.title}
-              onChange={(e) => setForm({ title: e.target.value })}
+              {...register("title")}
               placeholder="Tiêu đề bài viết"
-              className="w-full text-3xl font-bold bg-transparent border-b-2 border-gray-700 focus:border-orange-500 outline-none pb-2"
+              className="w-full text-3xl font-bold bg-transparent border-b-2 border-gray-700 focus:border-orange-500 outline-none pb-2 transition"
             />
+            {errors.title && (
+              <p className="text-red-400 text-sm">{errors.title.message}</p>
+            )}
 
             <textarea
-              value={form.excerpt}
-              onChange={(e) => setForm({ excerpt: e.target.value })}
+              {...register("excerpt")}
               placeholder="Mô tả ngắn (SEO)"
               rows={3}
-              className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none"
+              className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none transition"
             />
+            {errors.excerpt && (
+              <p className="text-red-400 text-sm">{errors.excerpt.message}</p>
+            )}
 
-            <div className="space-y-4">
-              <div className="flex justify-center">
-                <label className="cursor-pointer">
-                  {form.image ? (
-                    <img
-                      src={form.image}
-                      className="w-full h-64 rounded-xl object-cover border-4 border-orange-500"
-                    />
-                  ) : (
-                    <div className="w-full h-64 bg-gray-800 rounded-xl border-4 border-dashed border-orange-500 flex items-center justify-center text-6xl">
-                      +
-                    </div>
-                  )}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImage}
-                    className="hidden"
+            <div className="flex justify-center">
+              <label className="cursor-pointer group">
+                {form.image ? (
+                  <img
+                    src={form.image}
+                    alt="Cover"
+                    className="w-full h-64 rounded-xl object-cover border-4 border-orange-500 group-hover:opacity-90 transition"
                   />
-                </label>
-              </div>
-
-              <select
-                value={form.category}
-                onChange={(e) => setForm({ category: e.target.value })}
-                className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl"
-              >
-                <option>Xu hướng</option>
-                <option>Mẹo vặt</option>
-                <option>Tư vấn</option>
-                <option>Sản phẩm</option>
-              </select>
-
-              <div className="flex items-center gap-4">
+                ) : (
+                  <div className="w-full h-64 bg-gray-800 rounded-xl border-4 border-dashed border-orange-500 flex items-center justify-center text-6xl group-hover:bg-gray-700 transition">
+                    +
+                  </div>
+                )}
                 <input
-                  type="checkbox"
-                  checked={form.featured}
-                  onChange={(e) => setForm({ featured: e.target.checked })}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleCoverImage}
+                  className="hidden"
                 />
-                <label>Nổi bật (hiển thị trang chủ)</label>
-              </div>
+              </label>
+            </div>
 
-              <div className="flex gap-4">
-                <button
-                  onClick={handleSubmit}
-                  disabled={create.isPending}
-                  className="flex-1 bg-gradient-to-r from-orange-500 to-red-600 py-5 rounded-xl font-bold text-xl hover:scale-105 transition"
-                >
-                  {create.isPending ? "Đang đăng..." : "Đăng Bài"}
-                </button>
-                <button
-                  onClick={() => create.mutate({ ...form, status: "draft" })}
-                  className="px-8 py-5 border border-gray-600 rounded-xl hover:bg-white/10 transition"
-                >
-                  Lưu nháp
-                </button>
-              </div>
+            <select
+              {...register("category")}
+              className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none transition"
+            >
+              <option value="Xu hướng">Xu hướng</option>
+              <option value="Mẹo vặt">Mẹo vặt</option>
+              <option value="Tư vấn">Tư vấn</option>
+              <option value="Sản phẩm">Sản phẩm</option>
+            </select>
+
+            <label className="flex items-center gap-4 cursor-pointer">
+              <input
+                type="checkbox"
+                {...register("featured")}
+                className="w-5 h-5 rounded accent-orange-500"
+              />
+              <span className="text-lg">Nổi bật (trang chủ)</span>
+            </label>
+
+            <div className="flex gap-4">
+              <button
+                type="submit"
+                disabled={create.isPending}
+                className="flex-1 bg-gradient-to-r from-orange-500 to-red-600 py-5 rounded-xl font-bold text-xl hover:scale-105 transition shadow-2xl disabled:opacity-70"
+              >
+                {create.isPending ? "Đang đăng..." : "Đăng Bài"}
+              </button>
             </div>
           </div>
 
-          {/* Right: Editor */}
           <div className="lg:col-span-2 p-8">
-            <div className="bg-white text-black rounded-2xl h-full overflow-hidden">
-              <div className="border-b border-gray-300 p-4 flex gap-2">
+            <div className="bg-white text-black rounded-2xl h-full flex flex-col overflow-hidden">
+              <div className="border-b border-gray-300 p-4 flex gap-2 flex-wrap">
                 <button
                   onClick={() => editor?.chain().focus().toggleBold().run()}
                   className={`px-4 py-2 rounded ${
@@ -188,16 +242,26 @@ export default function CreateBlogModal() {
                 >
                   H2
                 </button>
+                <label className="px-4 py-2 rounded bg-gray-200 cursor-pointer hover:bg-gray-300 transition">
+                  Ảnh
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) =>
+                      e.target.files?.[0] &&
+                      handleInsertImage(e.target.files[0])
+                    }
+                  />
+                </label>
               </div>
-              <div
-                className="p-8 prose prose-lg max-w-none h-full overflow-y-auto"
-                dangerouslySetInnerHTML={{
-                  __html: form.content || "<p>Bắt đầu viết bài...</p>",
-                }}
+              <EditorContent
+                editor={editor}
+                className="p-8 prose prose-lg max-w-none flex-1 overflow-y-auto"
               />
             </div>
           </div>
-        </div>
+        </form>
       </motion.div>
     </motion.div>
   );

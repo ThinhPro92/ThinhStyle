@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
 import BarberCard from "./BarberCard";
+import type { Barber } from "../../../../types/barber";
 
 interface Props {
-  barbers: any[];
+  barbers: Barber[];
 }
 
 export default function BarbersGrid({ barbers }: Props) {

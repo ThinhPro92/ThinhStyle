@@ -1,25 +1,19 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-
 import { Scissors, Star, Calendar } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import apiClient from "../../lib/apiClient";
-import type { Barber } from "../../types";
+import type { Barber } from "../../types/barber";
 
 export default function BarbersPage() {
-  const [barbers, setBarbers] = useState<Barber[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: barbers = [], isLoading } = useQuery<Barber[]>({
+    queryKey: ["barbers"],
+    queryFn: async () => {
+      const res = await apiClient.get("/barber");
+      return res.data.data;
+    },
+  });
 
-  useEffect(() => {
-    apiClient
-      .get("/barber")
-      .then((res) => {
-        setBarbers(res.data.data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
-
-  if (loading)
+  if (isLoading)
     return <div className="text-center py-20">Đang tải thợ cắt...</div>;
 
   return (

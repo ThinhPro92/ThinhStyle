@@ -1,40 +1,27 @@
-import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
+import { useQuery } from "@tanstack/react-query";
+
 import { motion } from "framer-motion";
 import { Calendar, Clock, Scissors, User } from "lucide-react";
+import type { BarberAdmin, Booking } from "../../../types/barber";
+import { QUERY_KEYS } from "../../../constants/queryKeys";
+import apiClient from "../../../lib/apiClient";
 
-interface Booking {
-  _id: string;
-  customer: { name: string };
-  service: { name: string };
-  date: string;
-  time: string;
-  note?: string;
-  status: string;
+interface Props {
+  staffUser: BarberAdmin;
 }
 
-export default function HistoryList({ staffUser }: { staffUser: any }) {
-  const [history, setHistory] = useState<Booking[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function HistoryList({ staffUser }: Props) {
+  const { data: history = [], isLoading } = useQuery<Booking[]>({
+    queryKey: QUERY_KEYS.HISTORY(staffUser._id),
+    queryFn: async () => {
+      const res = await apiClient.get(
+        `/bookings/barber/${staffUser._id}?status=completed`
+      );
+      return res.data.data || [];
+    },
+  });
 
-  useEffect(() => {
-    const loadHistory = async () => {
-      try {
-        const res = await fetch(
-          `https://api-class-o1lo.onrender.com/api/thinhstyle/bookings/barber/${staffUser._id}?status=completed`
-        );
-        const data = await res.json();
-        setHistory(data.data || []);
-      } catch {
-        toast.error("Lỗi tải lịch sử");
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadHistory();
-  }, [staffUser._id]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="text-center py-20 text-2xl">Đang tải lịch sử...</div>
     );
