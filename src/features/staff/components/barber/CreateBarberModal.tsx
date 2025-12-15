@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
@@ -11,13 +11,13 @@ import type { z } from "zod";
 import type { CreateBarberData, WorkingHours } from "../../../../types/barber";
 
 const defaultWorkingHours: WorkingHours = {
+  "0": { isWorking: false },
   "1": { isWorking: true, start: "09:00", end: "21:00" },
   "2": { isWorking: true, start: "09:00", end: "21:00" },
   "3": { isWorking: true, start: "09:00", end: "21:00" },
   "4": { isWorking: true, start: "09:00", end: "21:00" },
   "5": { isWorking: true, start: "09:00", end: "21:00" },
   "6": { isWorking: true, start: "09:00", end: "21:00" },
-  "0": { isWorking: false },
 };
 
 type FormData = z.infer<typeof createBarberSchema>;
@@ -76,8 +76,15 @@ export default function CreateBarberModal() {
       password: "123456",
       email: data.email || "",
     };
-    create.mutate(payload);
+    const safeWorkingHours = Object.fromEntries(
+      Object.entries(defaultWorkingHours).map(([key, value]) => [
+        String(key),
+        value,
+      ])
+    );
+    console.log("Payload gửi đi:", payload);
     toast.success("Tạo thợ thành công! Mật khẩu: 123456", { duration: 10000 });
+    create.mutate({ ...payload, workingHours: safeWorkingHours });
   };
 
   if (!isCreateOpen) return null;
@@ -95,9 +102,19 @@ export default function CreateBarberModal() {
         className="bg-gradient-to-br from-gray-900 to-black border border-orange-500/50 rounded-2xl p-8 max-w-2xl w-full max-h-screen overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-orange-500 to-red-600 bg-clip-text text-transparent">
-          Thêm Thợ Mới
-        </h2>
+        <div className="flex justify-between items-center mb-8">
+          <h2 className="text-4xl font-bold bg-gradient-to-r from-orange-500 to-red-600 bg-clip-text text-transparent">
+            Thêm Thợ Mới
+          </h2>
+          <button
+            onClick={closeCreate}
+            aria-label="X"
+            className="p-3 hover:bg-white/10 rounded-xl transition"
+          >
+            <X className="w-8 h-8" />
+          </button>
+        </div>
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="flex justify-center">
             <label className="cursor-pointer">
@@ -126,7 +143,6 @@ export default function CreateBarberModal() {
             </label>
           </div>
 
-          {/* Các input */}
           <input
             {...register("name")}
             placeholder="Họ tên *"

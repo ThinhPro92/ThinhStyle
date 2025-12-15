@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import apiClient from "../../../lib/apiClient";
-import type { Barber } from "../../../types";
+import type { Barber } from "../../../types/barber";
 
 export const useBarbers = () => {
   return useQuery<Barber[]>({

@@ -1,14 +1,23 @@
-import { useState } from "react";
 import { format, addDays, isToday, setHours, setMinutes } from "date-fns";
 import { Clock, Loader2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { useAvailableSlots } from "../../features/booking/hooks/useAvailableSlots";
 import type { Step3Props } from "../../types/booking";
-import type { Barber } from "../../types/barber";
+import type { Barber, WorkingHours } from "../../types/barber";
+import { useState } from "react";
 
 interface Step3WithBarberProps extends Step3Props {
   barber?: Barber;
 }
+const defaultWorkingHours: WorkingHours = {
+  "0": { isWorking: false },
+  "1": { isWorking: true, start: "09:00", end: "21:00" },
+  "2": { isWorking: true, start: "09:00", end: "21:00" },
+  "3": { isWorking: true, start: "09:00", end: "21:00" },
+  "4": { isWorking: true, start: "09:00", end: "21:00" },
+  "5": { isWorking: true, start: "09:00", end: "21:00" },
+  "6": { isWorking: true, start: "09:00", end: "21:00" },
+};
 
 export default function Step3_SelectDateTime({
   onNext,
@@ -24,13 +33,15 @@ export default function Step3_SelectDateTime({
     barberId
   );
 
-  const workingHours = barber?.workingHours?.[selectedDate.getDay().toString()];
-  const isWorkingToday = workingHours?.isWorking;
-
-  const generateTimeSlots = () => {
-    if (!isWorkingToday || !workingHours?.start || !workingHours?.end) {
+  // Safe access + fallback
+  const dayKey = selectedDate.getDay().toString();
+  console.log("Barber workingHours:", barber?.workingHours);
+  const barberWorkingHours = barber?.workingHours || defaultWorkingHours;
+  const workingHours = barberWorkingHours[dayKey];
+  const isWorkingToday = workingHours?.isWorking ?? false;
+  const generateTimeSlots = (): string[] => {
+    if (!isWorkingToday || !workingHours?.start || !workingHours?.end)
       return [];
-    }
 
     const [startHour, startMinute] = workingHours.start.split(":").map(Number);
     const [endHour, endMinute] = workingHours.end.split(":").map(Number);
@@ -38,9 +49,11 @@ export default function Step3_SelectDateTime({
     const slots: string[] = [];
     let current = setMinutes(setHours(selectedDate, startHour), startMinute);
 
-    while (current < setMinutes(setHours(selectedDate, endHour), endMinute)) {
+    const endTime = setMinutes(setHours(selectedDate, endHour), endMinute);
+
+    while (current < endTime) {
       slots.push(format(current, "HH:mm"));
-      current = new Date(current.getTime() + 30 * 60 * 1000);
+      current = new Date(current.getTime() + 30 * 60 * 1000); // 30 phút mỗi slot
     }
 
     return slots;
@@ -58,12 +71,12 @@ export default function Step3_SelectDateTime({
   };
 
   return (
-    <div className="bg-white rounded-3xl shadow-xl p-8">
-      <h2 className="text-3xl font-bold text-center mb-8">
+    <div className="bg-white rounded-3xl shadow-xl p-8 max-w-4xl mx-auto">
+      <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">
         Chọn Ngày & Giờ Cắt
       </h2>
 
-      <div className="grid grid-cols-7 gap-3 mb-10">
+      <div className="grid grid-cols-7 gap-4 mb-10">
         {[...Array(7)].map((_, i) => {
           const date = addDays(new Date(), i);
           const isSelected =
@@ -75,42 +88,46 @@ export default function Step3_SelectDateTime({
                 setSelectedDate(date);
                 setSelectedTime(null);
               }}
-              className={`p-4 rounded-2xl transition-all border-2 ${
+              className={`p-6 rounded-2xl transition-all border-4 ${
                 isSelected
-                  ? "border-orange-500 bg-orange-500/10 shadow-lg"
-                  : "border-gray-200 hover:border-orange-500/50"
+                  ? "border-orange-500 bg-orange-500/20 shadow-xl scale-105"
+                  : "border-gray-300 hover:border-orange-400"
               }`}
             >
-              <p className="text-xs text-gray-500">
+              <p className="text-sm text-gray-600">
                 {isToday(date) ? "Hôm nay" : format(date, "EEE")}
               </p>
-              <p className="text-2xl font-bold">{format(date, "dd")}</p>
+              <p className="text-3xl font-bold mt-2">{format(date, "dd")}</p>
               <p className="text-sm text-gray-600">{format(date, "MMM")}</p>
             </button>
           );
         })}
       </div>
 
-      <div>
-        <h3 className="text-xl font-bold mb-6 flex items-center gap-3">
-          <Clock className="w-6 h-6 text-orange-500" />
+      <div className="mt-8">
+        <h3 className="text-2xl font-bold mb-6 flex items-center justify-center gap-3 text-gray-800">
+          <Clock className="w-8 h-8 text-orange-500" />
           {format(selectedDate, "EEEE, dd/MM/yyyy")}
         </h3>
 
         {!isWorkingToday ? (
-          <p className="text-center text-red-500 py-12 text-xl">
-            Thợ nghỉ ngày này
-          </p>
+          <div className="text-center py-16">
+            <p className="text-2xl text-red-500 font-medium">
+              Thợ nghỉ ngày này
+            </p>
+            <p className="text-gray-500 mt-4">Vui lòng chọn ngày khác</p>
+          </div>
         ) : isLoading ? (
-          <div className="text-center py-12">
-            <Loader2 className="w-10 h-10 animate-spin inline-block text-orange-500" />
+          <div className="text-center py-16">
+            <Loader2 className="w-12 h-12 animate-spin text-orange-500 mx-auto" />
+            <p className="text-gray-500 mt-4">Đang tải lịch đặt...</p>
           </div>
         ) : timeSlots.length === 0 ? (
-          <p className="text-center text-gray-500 py-12">
-            Không có khung giờ nào
+          <p className="text-center text-gray-500 py-16 text-xl">
+            Không có khung giờ nào trong ngày này
           </p>
         ) : (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
+          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-5">
             {timeSlots.map((time) => {
               const isBooked = bookedSlots.includes(time);
               return (
@@ -118,12 +135,12 @@ export default function Step3_SelectDateTime({
                   key={time}
                   disabled={isBooked}
                   onClick={() => setSelectedTime(time)}
-                  className={`py-5 px-4 rounded-2xl font-bold text-lg transition-all transform ${getSlotStatus(
+                  className={`py-6 px-4 rounded-3xl font-bold text-xl transition-all transform ${getSlotStatus(
                     time
-                  )}`}
+                  )} ${isBooked ? "cursor-not-allowed" : "cursor-pointer"}`}
                 >
                   {time}
-                  {isBooked && <p className="text-xs mt-1">Đã đặt</p>}
+                  {isBooked && <p className="text-sm mt-2">Đã đặt</p>}
                 </button>
               );
             })}
@@ -131,16 +148,17 @@ export default function Step3_SelectDateTime({
         )}
       </div>
 
-      <div className="flex justify-between mt-10">
+      <div className="flex justify-between mt-12">
         <Button variant="outline" size="lg" onClick={onPrev}>
-          ← Quay lại
+          ← Quay lại chọn thợ
         </Button>
         <Button
           size="lg"
           disabled={!selectedTime}
           onClick={() => onNext({ date: selectedDate, time: selectedTime! })}
+          className="px-12"
         >
-          Tiếp tục → {selectedTime && `- ${selectedTime}`}
+          Tiếp tục → {selectedTime && `${selectedTime}`}
         </Button>
       </div>
     </div>
