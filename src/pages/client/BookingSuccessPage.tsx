@@ -21,11 +21,9 @@ export default function BookingSuccessPage() {
   const [cancelReason, setCancelReason] = useState("");
   const [isCancelling, setIsCancelling] = useState(false);
 
-  // Lấy data từ navigate state
   const data = location.state as BookingSuccessProps | null;
 
   if (!data) {
-    // Nếu không có data → quay lại booking hoặc home
     navigate("/booking");
     return null;
   }
@@ -67,6 +65,7 @@ export default function BookingSuccessPage() {
         `cancelCount_${user?.phone}`,
         String(cancelCount + 1)
       );
+
       toast.success("Hủy lịch thành công!");
       navigate("/booking");
     }, 1000);
