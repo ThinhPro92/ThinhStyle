@@ -12,7 +12,8 @@ const blogs = [
     date: "15/03/2025",
     readTime: "5 phút đọc",
     image:
-      "https://images.unsplash.com/photo-1620332372374-f108c53c2e4c?w=800&q=80",
+      "https://images.unsplash.com/photo-1605497788044-5a32c7078486?w=800&q=80",
+
     category: "Xu hướng",
   },
   {
@@ -24,7 +25,7 @@ const blogs = [
     date: "10/03/2025",
     readTime: "7 phút đọc",
     image:
-      "https://images.unsplash.com/photo-1599351431202-968d8785285e?w=800&q=80",
+      "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800&q=80",
     category: "Mẹo vặt",
   },
   {
@@ -36,7 +37,7 @@ const blogs = [
     date: "05/03/2025",
     readTime: "6 phút đọc",
     image:
-      "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=800&q=80",
+      "https://barbershop.vn/static/adsense/2018/images/1515230957_hoi-nghe-toc-viet-nam.png",
     category: "Giới thiệu",
   },
   {
@@ -145,7 +146,6 @@ export default function BlogsSection() {
           ))}
         </div>
 
-        {/* CTA */}
         <div className="text-center mt-16">
           <Link
             to="/blogs"

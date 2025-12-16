@@ -13,7 +13,7 @@ const blogs = [
     date: "15/03/2025",
     readTime: "5 phút đọc",
     image:
-      "https://images.unsplash.com/photo-1620332372374-f108c53c2e4c?w=1200&q=80",
+      "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=1200&q=80",
     category: "Xu hướng",
     featured: true,
   },
@@ -25,8 +25,7 @@ const blogs = [
     author: "Nam Master",
     date: "10/03/2025",
     readTime: "7 phút đọc",
-    image:
-      "https://images.unsplash.com/photo-1599351431202-968d8785285e?w=1200&q=80",
+    image: "https://liembarbershop.com/wp-content/uploads/2024/08/04-30.jpg",
     category: "Mẹo vặt",
   },
   {
@@ -37,8 +36,7 @@ const blogs = [
     author: "ThinhStyle Team",
     date: "05/03/2025",
     readTime: "6 phút đọc",
-    image:
-      "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=1200&q=80",
+    image: "http://localhost:5173/barber4.png",
     category: "Giới thiệu",
   },
   {
@@ -50,7 +48,7 @@ const blogs = [
     date: "01/03/2025",
     readTime: "8 phút đọc",
     image:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&q=80",
+      "https://barbershopvutri.com/wp-content/uploads/2019/07/7-kieu-khuon-mat-nam-600x600.png",
     category: "Tư vấn",
   },
   {
@@ -74,7 +72,7 @@ const blogs = [
     date: "25/02/2025",
     readTime: "9 phút đọc",
     image:
-      "https://images.unsplash.com/photo-1608248597784-8242b5b1f64e?w=1200&q=80",
+      "https://images.unsplash.com/photo-1600948836101-f9ffda59d250?w=1200&q=80",
     category: "Sản phẩm",
   },
 ];
