@@ -1,10 +1,11 @@
-// src/components/booking/PhoneModal.tsx
 import { useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment } from "react";
 import { X, Phone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
+import { useCustomerStore } from "../../store/useCustomerStore";
+import toast from "react-hot-toast";
 
 export default function PhoneModal({
   isOpen,
@@ -16,30 +17,22 @@ export default function PhoneModal({
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useCustomerStore();
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!/^(0[3|5|7|8|9])+([0-9]{8})\b/.test(phone)) {
-      alert("Số điện thoại không hợp lệ");
+      toast.error("Số điện thoại không hợp lệ");
       return;
     }
 
     setLoading(true);
-    try {
-      // Gọi API gửi OTP (sẽ làm sau)
-      // const res = await apiClient.post("/auth/send-otp", { phone });
-
-      // Tạm thời: giả lập thành công
-      setTimeout(() => {
-        setLoading(false);
-        onClose();
-        // Chuyển sang trang OTP
-        navigate("/booking/phone-verify", { state: { phone } });
-      }, 1000);
-    } catch (err) {
+    setTimeout(() => {
+      login(phone);
       setLoading(false);
-      console.log(err);
-      alert("Gửi OTP thất bại");
-    }
+      onClose();
+      toast.success("Đăng nhập thành công!");
+      navigate("/booking"); // Redirect to booking if needed
+    }, 1000);
   };
 
   return (
@@ -56,7 +49,6 @@ export default function PhoneModal({
         >
           <div className="fixed inset-0 bg-black bg-opacity-60" />
         </Transition.Child>
-
         <div className="fixed inset-0 overflow-y-auto">
           <div className="flex min-h-full items-center justify-center p-4">
             <Transition.Child
@@ -73,11 +65,14 @@ export default function PhoneModal({
                   <h2 className="text-3xl font-bold text-center w-full">
                     Đặt Lịch Nhanh
                   </h2>
-                  <button onClick={onClose} className="absolute top-6 right-6">
-                    {} <X className="w-7 h-7 h-7 text-gray-500" />
+                  <button
+                    onClick={onClose}
+                    aria-label="X"
+                    className="absolute top-6 right-6"
+                  >
+                    <X className="w-7 h-7 text-gray-500" />
                   </button>
                 </div>
-
                 <div className="text-center mb-8">
                   <div className="w-20 h-20 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Phone className="w-10 h-10 text-accent" />
@@ -89,7 +84,6 @@ export default function PhoneModal({
                     Chúng tôi sẽ gửi mã xác nhận ngay!
                   </p>
                 </div>
-
                 <input
                   type="tel"
                   value={phone}
@@ -98,7 +92,6 @@ export default function PhoneModal({
                   className="w-full px-6 py-5 text-xl text-center border-2 border-gray-300 rounded-2xl focus:border-accent focus:outline-none transition mb-6"
                   maxLength={11}
                 />
-
                 <Button
                   size="lg"
                   className="w-full text-xl py-8"
@@ -107,7 +100,6 @@ export default function PhoneModal({
                 >
                   {loading ? "Đang gửi mã..." : "Gửi mã xác nhận →"}
                 </Button>
-
                 <p className="text-center text-sm text-gray-500 mt-6">
                   Bằng việc tiếp tục, bạn đồng ý với{" "}
                   <span className="text-accent">Điều khoản dịch vụ</span>

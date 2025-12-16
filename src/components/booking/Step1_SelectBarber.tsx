@@ -1,9 +1,23 @@
 import { useBarbers } from "../../features/barber/hooks/useBarbersClient";
 import type { Step1Props } from "../../types/booking";
 import { Button } from "../ui/button";
+import { useCustomerStore } from "../../store/useCustomerStore";
+import PhoneModal from "../booking/PhoneModal";
+import { useState } from "react";
+import type { Barber } from "../../types/barber";
 
 export default function Step1_SelectBarber({ onNext }: Step1Props) {
   const { data: barbers = [], isLoading } = useBarbers();
+  const { isAuthenticated } = useCustomerStore();
+  const [openPhoneModal, setOpenPhoneModal] = useState(false);
+
+  const handleSelectBarber = (barber: Barber) => {
+    if (!isAuthenticated) {
+      setOpenPhoneModal(true);
+      return;
+    }
+    onNext({ barber });
+  };
 
   if (isLoading)
     return <div className="text-center py-20">Đang tải thợ cắt...</div>;
@@ -17,7 +31,7 @@ export default function Step1_SelectBarber({ onNext }: Step1Props) {
         {barbers.map((barber) => (
           <button
             key={barber._id}
-            onClick={() => onNext({ barber })}
+            onClick={() => handleSelectBarber(barber)}
             className="group text-center hover:scale-105 transition-all"
           >
             <div className="overflow-hidden rounded-full mb-4 ring-4 ring-transparent group-hover:ring-accent/50 transition-all">
@@ -33,6 +47,10 @@ export default function Step1_SelectBarber({ onNext }: Step1Props) {
           </button>
         ))}
       </div>
+      <PhoneModal
+        isOpen={openPhoneModal}
+        onClose={() => setOpenPhoneModal(false)}
+      />
     </div>
   );
 }

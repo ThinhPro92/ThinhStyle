@@ -244,9 +244,9 @@ export default function BlogPage() {
         </div>
 
         <div className="text-center mt-16">
-          <button className="bg-gradient-to-r from-orange-500 to-red-600 text-white px-12 py-5 rounded-full text-xl font-bold hover:scale-105 transition shadow-2xl">
+          {/* <button className="bg-gradient-to-r from-orange-500 to-red-600 text-white px-12 py-5 rounded-full text-xl font-bold hover:scale-105 transition shadow-2xl">
             Xem thêm bài viết
-          </button>
+          </button> */}
         </div>
       </div>
     </div>

@@ -82,7 +82,7 @@ export default function BlogsSection() {
               transition={{ delay: index * 0.1 }}
               className="group relative bg-white dark:bg-gray-900 rounded-3xl shadow-xl overflow-hidden hover:shadow-2xl hover:shadow-orange-500/20 transition-all duration-500 hover:-translate-y-4"
             >
-              <Link to={`/blog/${blog.id}`} className="block">
+              <Link to={`/blogs/${blog.id}`} className="block">
                 {/* Image */}
                 <div className="relative h-64 overflow-hidden">
                   <img
@@ -105,7 +105,6 @@ export default function BlogsSection() {
                     {blog.excerpt}
                   </p>
 
-                  {/* Meta */}
                   <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                     <div className="flex items-center gap-4">
                       <span className="flex items-center gap-1">
@@ -124,7 +123,6 @@ export default function BlogsSection() {
                   </div>
                 </div>
 
-                {/* Hover Arrow */}
                 <div className="absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 transition">
                   <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
                     <svg
@@ -150,7 +148,7 @@ export default function BlogsSection() {
         {/* CTA */}
         <div className="text-center mt-16">
           <Link
-            to="/blog"
+            to="/blogs"
             className="inline-block bg-gradient-to-r from-orange-500 to-red-600 text-white px-12 py-5 rounded-full text-xl font-bold hover:scale-105 transition shadow-2xl"
           >
             Xem tất cả bài viết →
