@@ -1,3 +1,4 @@
+// src/pages/admin/BarberDashboard.tsx
 import { useState } from "react";
 import { io } from "socket.io-client";
 import ChangePasswordModal from "../../features/auth/staff/components/ChangePasswordModal";
@@ -5,30 +6,41 @@ import BarberHeader from "../../features/barber/components/BarberHeader";
 import BarberStats from "../../features/barber/components/BarberStats";
 import BookingList from "../../features/barber/components/BookingList";
 import HistoryList from "../../features/barber/components/HistoryList";
-import type { BarberAdmin, BarberSocket } from "../../types/barber";
+import { useStaffStore } from "../../store/useStaffStore";
+import type { BarberSocket } from "../../types/barber";
 
-const socket: BarberSocket = io("https://api-class-o1lo.onrender.com", {
-  auth: { token: localStorage.getItem("staffToken") },
-});
+const socket: BarberSocket = io(
+  "https://api-class-o1lo.onrender.com/api/thinhstyle",
+  {
+    auth: { token: localStorage.getItem("staffToken") },
+  }
+);
 
 export default function BarberDashboard() {
   const [activeTab, setActiveTab] = useState<"today" | "history">("today");
-  const staffUser: BarberAdmin = JSON.parse(
-    localStorage.getItem("staffUser") || "{}"
-  );
+  const { user: staffUser, isLoading } = useStaffStore();
+
   const hasChangedPassword =
     localStorage.getItem("hasChangedPassword") === "true";
 
-  if (!hasChangedPassword) {
-    return <ChangePasswordModal onSuccess={() => window.location.reload()} />;
-  }
-
-  if (!staffUser?._id) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center text-white text-2xl">
         Đang tải...
       </div>
     );
+  }
+
+  if (!staffUser?._id) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center text-white text-2xl">
+        Không tìm thấy thông tin thợ
+      </div>
+    );
+  }
+
+  if (!hasChangedPassword) {
+    return <ChangePasswordModal onSuccess={() => window.location.reload()} />;
   }
 
   return (

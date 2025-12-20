@@ -1,21 +1,28 @@
 import { X } from "lucide-react";
 import { motion } from "framer-motion";
-import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useServiceActions } from "../hooks/useServiceActions";
-import { useLayoutEffect, startTransition } from "react";
-import type { z } from "zod";
+import { useEffect, useState } from "react";
 import { updateServiceSchema } from "../../../validates/ServiceSchema";
+import type { z } from "zod";
 import { useServiceStore } from "../../../store/useServiceStore";
 import type { UpdateServiceData } from "../../../types/service";
 
 type FormData = z.infer<typeof updateServiceSchema>;
 
+type AvatarState = {
+  file: File | null;
+  preview: string;
+};
+
 export default function UpdateServiceModal() {
-  const { isEditOpen, closeEdit, selectedService, form, setForm } =
-    useServiceStore();
+  const { isEditOpen, closeEdit, selectedService } = useServiceStore();
   const { update } = useServiceActions();
+  const [avatar, setAvatar] = useState<AvatarState>({
+    file: null,
+    preview: "",
+  });
 
   const {
     register,
@@ -26,7 +33,7 @@ export default function UpdateServiceModal() {
     resolver: zodResolver(updateServiceSchema),
   });
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (selectedService && isEditOpen) {
       reset({
         name: selectedService.name,
@@ -35,39 +42,35 @@ export default function UpdateServiceModal() {
         description: selectedService.description ?? "",
         isActive: selectedService.isActive,
       });
-
-      startTransition(() => {
-        setForm({
-          name: selectedService.name,
-          price: selectedService.price,
-          duration: selectedService.duration,
-          description: selectedService.description ?? "",
-          image: selectedService.image ?? "",
-          isActive: selectedService.isActive,
-        });
-      });
     }
-  }, [selectedService, isEditOpen, reset, setForm]);
+  }, [selectedService, isEditOpen, reset]);
 
   const uploadImage = async (file: File): Promise<string> => {
     const data = new FormData();
     data.append("file", file);
     data.append("upload_preset", "thinhstyle");
+    data.append("folder", "service"); // ← FOLDER SERVICE
     const res = await fetch(
-      "https://api.cloudinary.com/v1_1/dvzhf7x8t/image/upload",
+      "https://api.cloudinary.com/v1_1/dgap7lcbd/image/upload",
       {
         method: "POST",
         body: data,
       }
     );
     const json = await res.json();
+    if (!res.ok) throw new Error(json.error?.message || "Upload failed");
     return json.secure_url;
   };
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = async (data: FormData) => {
+    let newImage = avatar.preview;
+    if (avatar.file) {
+      newImage = await uploadImage(avatar.file);
+    }
+
     const payload: UpdateServiceData = {
       ...data,
-      image: form.image || undefined,
+      image: newImage || undefined,
     };
 
     update.mutate({ id: selectedService!._id, data: payload });
@@ -94,18 +97,19 @@ export default function UpdateServiceModal() {
           </h2>
           <button
             onClick={closeEdit}
+            aria-label="X"
             className="p-3 hover:bg-white/10 rounded-xl transition"
           >
-            {} <X className="w-7 h-7" />
+            <X className="w-7 h-7" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="flex justify-center">
             <label className="cursor-pointer group">
-              {form.image ? (
+              {avatar.preview ? (
                 <img
-                  src={form.image}
+                  src={avatar.preview}
                   alt="Preview"
                   className="w-48 h-48 rounded-xl object-cover border-4 border-orange-500 group-hover:opacity-90 transition"
                 />
@@ -119,60 +123,51 @@ export default function UpdateServiceModal() {
                 accept="image/*"
                 className="hidden"
                 onChange={async (e) => {
-                  if (e.target.files?.[0]) {
-                    const url = await uploadImage(e.target.files[0]);
-                    setForm({ image: url });
-                    toast.success("Upload ảnh thành công!");
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const preview = URL.createObjectURL(file);
+                    setAvatar({ file, preview });
                   }
                 }}
               />
             </label>
           </div>
 
-          <div>
-            <input
-              {...register("name")}
-              placeholder="Tên dịch vụ *"
-              className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none transition"
-            />
-            {errors.name && (
-              <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
-            )}
-          </div>
+          {/* Các input giữ nguyên */}
+          <input
+            {...register("name")}
+            placeholder="Tên dịch vụ *"
+            className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none"
+          />
+          {errors.name && (
+            <p className="text-red-500 text-sm">{errors.name.message}</p>
+          )}
 
-          <div>
-            <input
-              {...register("price", { valueAsNumber: true })}
-              type="number"
-              placeholder="Giá (VNĐ) *"
-              className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none transition"
-            />
-            {errors.price && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.price.message}
-              </p>
-            )}
-          </div>
+          <input
+            {...register("price", { valueAsNumber: true })}
+            type="number"
+            placeholder="Giá (VNĐ) *"
+            className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none"
+          />
+          {errors.price && (
+            <p className="text-red-500 text-sm">{errors.price.message}</p>
+          )}
 
-          <div>
-            <input
-              {...register("duration", { valueAsNumber: true })}
-              type="number"
-              placeholder="Thời gian (phút) *"
-              className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none transition"
-            />
-            {errors.duration && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.duration.message}
-              </p>
-            )}
-          </div>
+          <input
+            {...register("duration", { valueAsNumber: true })}
+            type="number"
+            placeholder="Thời gian (phút) *"
+            className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none"
+          />
+          {errors.duration && (
+            <p className="text-red-500 text-sm">{errors.duration.message}</p>
+          )}
 
           <textarea
             {...register("description")}
             placeholder="Mô tả dịch vụ"
             rows={3}
-            className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none resize-none transition"
+            className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none resize-none"
           />
 
           <label className="flex items-center gap-3 cursor-pointer">
@@ -187,7 +182,7 @@ export default function UpdateServiceModal() {
           <button
             type="submit"
             disabled={update.isPending}
-            className="w-full bg-gradient-to-r from-orange-500 to-red-600 py-5 rounded-xl font-bold text-xl hover:scale-105 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-gradient-to-r from-orange-500 to-red-600 py-5 rounded-xl font-bold text-xl hover:scale-105 transition disabled:opacity-50"
           >
             {update.isPending ? "Đang cập nhật..." : "Cập Nhật Dịch Vụ"}
           </button>

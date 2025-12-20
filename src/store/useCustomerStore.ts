@@ -15,24 +15,37 @@ interface CustomerStore {
   user: CustomerUser | null;
   isAuthenticated: boolean;
   activeBooking: ActiveBooking | null;
+  tempPhone: string | null;
 
   login: (phone: string, name?: string) => void;
+  verifyLogin: (name?: string) => void;
+  setTempPhone: (phone: string | null) => void;
   updateName: (name: string) => void;
   setActiveBooking: (booking: ActiveBooking | null) => void;
   logout: () => void;
 }
 
-export const useCustomerStore = create<CustomerStore>((set) => ({
+export const useCustomerStore = create<CustomerStore>((set, get) => ({
   user: null,
   isAuthenticated: false,
   activeBooking: null,
+  tempPhone: null,
 
   login: (phone, name) => {
     const user = { phone, name, role: "customer" as const };
     localStorage.setItem("customerPhone", phone);
     if (name) localStorage.setItem("customerName", name);
-    set({ user, isAuthenticated: true });
+    set({ user, isAuthenticated: true, tempPhone: null });
   },
+
+  verifyLogin: (name) => {
+    const phone = get().tempPhone;
+    if (phone) {
+      get().login(phone, name);
+    }
+  },
+
+  setTempPhone: (phone) => set({ tempPhone: phone }),
 
   updateName: (name) => {
     localStorage.setItem("customerName", name);

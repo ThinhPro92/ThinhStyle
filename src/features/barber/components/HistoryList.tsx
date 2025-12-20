@@ -2,12 +2,13 @@ import { useQuery } from "@tanstack/react-query";
 
 import { motion } from "framer-motion";
 import { Calendar, Clock, Scissors, User } from "lucide-react";
-import type { BarberAdmin, Booking } from "../../../types/barber";
 import { QUERY_KEYS } from "../../../constants/queryKeys";
 import apiClient from "../../../lib/apiClient";
+import type { Booking } from "../../../types/booking";
+import type { StaffUser } from "../../../types/auth";
 
 interface Props {
-  staffUser: BarberAdmin;
+  staffUser: StaffUser;
 }
 
 export default function HistoryList({ staffUser }: Props) {
@@ -51,10 +52,10 @@ export default function HistoryList({ staffUser }: Props) {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
               <div>
                 <h3 className="text-2xl font-bold text-green-400 flex items-center gap-3">
-                  <User className="w-7 h-7" /> {b.customer.name}
+                  <User className="w-7 h-7" /> {b.customerName}
                 </h3>
                 <p className="text-lg mt-2 flex items-center gap-2">
-                  <Scissors className="w-5 h-5" /> {b.service.name}
+                  <Scissors className="w-5 h-5" /> {b.serviceIds}
                 </p>
                 <p className="text-gray-400 mt-2 flex items-center gap-2">
                   <Calendar className="w-5 h-5" />{" "}

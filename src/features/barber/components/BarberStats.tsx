@@ -1,12 +1,13 @@
+// src/features/barber/components/BarberStats.tsx
 import { Users, Calendar, Bell } from "lucide-react";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
-import type { BarberAdmin } from "../../../types/barber";
+import type { StaffUser } from "../../../types/auth";
 import { QUERY_KEYS } from "../../../constants/queryKeys";
 import apiClient from "../../../lib/apiClient";
 
 interface Props {
-  staffUser: BarberAdmin;
+  staffUser: StaffUser;
 }
 
 interface BarberStatsData {
@@ -21,6 +22,7 @@ export default function BarberStats({ staffUser }: Props) {
       const res = await apiClient.get(`/barber/stats/${staffUser._id}`);
       return res.data;
     },
+    enabled: !!staffUser._id,
   });
 
   return (

@@ -12,6 +12,7 @@ import { createBookingSchema } from "../../../validates/BookingSchema";
 import type { z } from "zod";
 import type { Barber } from "../../../types/barber";
 import type { Service } from "../../../types/service";
+import { generateBookingCode } from "../../../utils/generateBookingCode";
 
 type FormData = z.infer<typeof createBookingSchema>;
 
@@ -37,10 +38,7 @@ export default function CreateBookingModal() {
     Service[]
   >({
     queryKey: QUERY_KEYS.SERVICES,
-    queryFn: async () =>
-      (await apiClient.get("/services")).data.data.filter(
-        (s: Service) => s.isActive
-      ),
+    queryFn: async () => (await apiClient.get("/services")).data.data,
   });
 
   useLayoutEffect(() => {
@@ -58,10 +56,15 @@ export default function CreateBookingModal() {
   }, [isCreateOpen, reset]);
 
   const onSubmit = (data: FormData) => {
-    create.mutate({
+    const payload = {
       ...data,
+      serviceIds: data.serviceIds || [],
+      status: "pending" as const,
       note: data.note || "",
-    });
+      bookingCode: generateBookingCode(),
+      type: "walk_in" as const,
+    };
+    create.mutate(payload);
   };
 
   if (!isCreateOpen) return null;
@@ -70,13 +73,13 @@ export default function CreateBookingModal() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="fixed inset-0 bg-black/80 backdrop-blur z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-black/80 backdrop-blur z-50 flex items-center justify-center p-4 overflow-y-auto"
       onClick={closeCreate}
     >
       <motion.div
         initial={{ scale: 0.9 }}
         animate={{ scale: 1 }}
-        className="bg-gradient-to-br from-gray-900 to-black border border-orange-500/50 rounded-3xl p-10 max-w-4xl w-full max-h-screen overflow-y-auto"
+        className="bg-gradient-to-br from-gray-900 to-black border border-orange-500/50 rounded-3xl p-10 max-w-5xl w-full my-8"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-8">
@@ -85,9 +88,10 @@ export default function CreateBookingModal() {
           </h2>
           <button
             onClick={closeCreate}
+            aria-label="X"
             className="p-3 hover:bg-white/10 rounded-xl transition"
           >
-            {} <X className="w-8 h-8" />
+            <X className="w-8 h-8" />
           </button>
         </div>
 
@@ -139,6 +143,7 @@ export default function CreateBookingModal() {
               type="date"
               className="w-full px-6 py-4 bg-gray-800/70 border border-gray-700 rounded-2xl focus:border-orange-500 outline-none transition text-lg"
             />
+
             <input
               {...register("startTime")}
               type="time"
@@ -151,22 +156,33 @@ export default function CreateBookingModal() {
               <p className="text-lg font-medium mb-3 text-orange-400">
                 Chọn dịch vụ (nhiều)
               </p>
-              <select
-                {...register("serviceIds")}
-                multiple
-                size={6}
-                className="w-full px-6 py-4 bg-gray-800/70 border border-gray-700 rounded-2xl focus:border-orange-500 outline-none transition text-lg h-64"
-              >
+              <div className="bg-gray-800/70 border border-gray-700 rounded-2xl p-4 max-h-64 overflow-y-auto">
                 {loadingServices ? (
-                  <option>Đang tải...</option>
+                  <p className="text-center text-gray-400">Đang tải...</p>
                 ) : (
-                  services.map((s) => (
-                    <option key={s._id} value={s._id}>
-                      {s.name} - {s.price.toLocaleString()}đ
-                    </option>
-                  ))
+                  <div className="space-y-3">
+                    {services.map((s) => (
+                      <label
+                        key={s._id}
+                        className="flex items-center gap-4 cursor-pointer hover:bg-gray-700/50 p-3 rounded-xl transition"
+                      >
+                        <input
+                          type="checkbox"
+                          value={s._id}
+                          {...register("serviceIds")}
+                          className="w-6 h-6 accent-orange-500 rounded"
+                        />
+                        <div className="flex-1">
+                          <p className="font-medium">{s.name}</p>
+                          <p className="text-sm text-gray-400">
+                            {s.price.toLocaleString()}đ
+                          </p>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
                 )}
-              </select>
+              </div>
               {errors.serviceIds && (
                 <p className="text-red-400 text-sm mt-1">
                   {errors.serviceIds.message}

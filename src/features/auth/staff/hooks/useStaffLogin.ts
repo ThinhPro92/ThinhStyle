@@ -10,44 +10,43 @@ interface LoginResponse {
   user: StaffUser;
 }
 
+interface ApiResponse {
+  success: boolean;
+  message: string;
+  data: LoginResponse;
+  meta?: unknown;
+}
+
 export const useStaffLogin = () => {
   const navigate = useNavigate();
   const { login } = useStaffStore();
 
-  return useMutation<LoginResponse, Error, { email: string; password: string }>(
-    {
-      mutationFn: async ({ email, password }) => {
-        if (password === "123456") {
-          const fakeUser: StaffUser = {
-            _id: "fake-id-123",
-            name: email.includes("admin") ? "Thịnh Admin" : "Barber Pro",
-            email,
-            role: email.includes("admin") ? "admin" : "barber",
-          };
-          return { accessToken: "fake-token", user: fakeUser };
-        }
+  return useMutation<ApiResponse, Error, { email: string; password: string }>({
+    mutationFn: async ({ email, password }) => {
+      const res = await apiClient.post("/auth/login", { email, password });
+      return res.data as ApiResponse;
+    },
+    onSuccess: (apiRes) => {
+      const { user, accessToken } = apiRes.data;
+      localStorage.setItem("staffToken", accessToken);
+      localStorage.setItem("staffUser", JSON.stringify(user));
+      login(user, accessToken);
+      toast.success(
+        `Chào mừng ${user.role === "admin" ? "Admin" : "Thợ"} ${
+          user.name || ""
+        }!`
+      );
 
-        const res = await apiClient.post("/auth/staff/login", {
-          email,
-          password,
-        });
-        return res.data.data as LoginResponse;
-      },
-      onSuccess: (data) => {
-        login(data.user, data.accessToken);
-        toast.success(
-          `Chào mừng ${data.user.role === "admin" ? "Admin" : "Thợ"} ${
-            data.user.name || ""
-          }!`
-        );
-        navigate(
-          data.user.role === "admin" ? "/admin/dashboard" : "/barber/dashboard",
-          { replace: true }
-        );
-      },
-      onError: (error) => {
-        toast.error(error.message || "Đăng nhập thất bại");
-      },
-    }
-  );
+      if (user.role === "admin") {
+        navigate("/admin/dashboard", { replace: true });
+      } else if (user.role === "barber") {
+        navigate("/barber/dashboard", { replace: true });
+      } else {
+        navigate("/");
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || "Đăng nhập thất bại");
+    },
+  });
 };

@@ -8,6 +8,7 @@ import ServicesPage from "../pages/admin/ServicesPage";
 import BlogsAdmin from "../pages/admin/BlogsAdmin";
 import BarberDashboard from "../pages/admin/BarberDashboard";
 import BookingsPage from "../pages/admin/BookingsPage";
+import CustomersPage from "../pages/admin/CustomersPage";
 
 export const staffRoutes = () => [
   {
@@ -23,6 +24,7 @@ export const staffRoutes = () => [
       { path: "services", Component: ServicesPage },
       { path: "blogs", Component: BlogsAdmin },
       { path: "bookings", Component: BookingsPage },
+      { path: "customers", Component: CustomersPage },
       { path: "*", Component: AdminNotFound },
     ],
   },

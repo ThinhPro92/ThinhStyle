@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../ui/button";
+import { Link } from "react-router-dom";
 
 type BannerVariant = "left" | "center" | "box";
 
@@ -145,7 +146,7 @@ function HeroContent({ banner }: { banner: (typeof banners)[0] }) {
         size="lg"
         className="px-10 py-6 text-lg rounded-full bg-amber-500 hover:bg-amber-600 shadow-xl"
       >
-        Đặt lịch ngay
+        <Link to="/booking"> Đặt lịch ngay</Link>
       </Button>
     </>
   );

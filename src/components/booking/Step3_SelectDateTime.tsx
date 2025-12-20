@@ -1,23 +1,14 @@
-import { format, addDays, isToday, setHours, setMinutes } from "date-fns";
+import { format, addDays, isToday } from "date-fns";
 import { Clock, Loader2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { useAvailableSlots } from "../../features/booking/hooks/useAvailableSlots";
 import type { Step3Props } from "../../types/booking";
-import type { Barber, WorkingHours } from "../../types/barber";
+import type { Barber } from "../../types/barber";
 import { useState } from "react";
 
 interface Step3WithBarberProps extends Step3Props {
   barber?: Barber;
 }
-const defaultWorkingHours: WorkingHours = {
-  "0": { isWorking: false },
-  "1": { isWorking: true, start: "09:00", end: "21:00" },
-  "2": { isWorking: true, start: "09:00", end: "21:00" },
-  "3": { isWorking: true, start: "09:00", end: "21:00" },
-  "4": { isWorking: true, start: "09:00", end: "21:00" },
-  "5": { isWorking: true, start: "09:00", end: "21:00" },
-  "6": { isWorking: true, start: "09:00", end: "21:00" },
-};
 
 export default function Step3_SelectDateTime({
   onNext,
@@ -33,27 +24,44 @@ export default function Step3_SelectDateTime({
     barberId
   );
 
-  // Safe access + fallback
   const dayKey = selectedDate.getDay().toString();
-  console.log("Barber workingHours:", barber?.workingHours);
-  const barberWorkingHours = barber?.workingHours || defaultWorkingHours;
-  const workingHours = barberWorkingHours[dayKey];
-  const isWorkingToday = workingHours?.isWorking ?? false;
-  const generateTimeSlots = (): string[] => {
-    if (!isWorkingToday || !workingHours?.start || !workingHours?.end)
-      return [];
+  const workingHours = barber?.workingHours?.[dayKey];
+  const isWorkingToday = workingHours?.isWorking ?? true;
 
-    const [startHour, startMinute] = workingHours.start.split(":").map(Number);
-    const [endHour, endMinute] = workingHours.end.split(":").map(Number);
+  const generateTimeSlots = (): string[] => {
+    if (!isWorkingToday) return [];
+
+    const start = workingHours?.start || "09:00";
+    const end = workingHours?.end || "21:00";
+
+    const [startHour, startMinute] = start.split(":").map(Number);
+    const [endHour, endMinute] = end.split(":").map(Number);
 
     const slots: string[] = [];
-    let current = setMinutes(setHours(selectedDate, startHour), startMinute);
+    let hour = startHour;
+    let minute = startMinute;
 
-    const endTime = setMinutes(setHours(selectedDate, endHour), endMinute);
+    while (hour < endHour || (hour === endHour && minute <= endMinute)) {
+      slots.push(
+        `${hour.toString().padStart(2, "0")}:${minute
+          .toString()
+          .padStart(2, "0")}`
+      );
+      minute += 15; // ← 15 phút linh hoạt
+      if (minute >= 60) {
+        minute = 0;
+        hour += 1;
+      }
+    }
 
-    while (current < endTime) {
-      slots.push(format(current, "HH:mm"));
-      current = new Date(current.getTime() + 30 * 60 * 1000); // 30 phút mỗi slot
+    if (isToday(selectedDate)) {
+      const now = new Date();
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+      return slots.filter((time) => {
+        const [h, m] = time.split(":").map(Number);
+        return h > currentHour || (h === currentHour && m > currentMinute);
+      });
     }
 
     return slots;
@@ -66,7 +74,7 @@ export default function Step3_SelectDateTime({
     if (selectedTime === time)
       return "bg-orange-500 text-white shadow-lg scale-105";
     if (bookedSlots.includes(time))
-      return "bg-red-500 text-white line-through opacity-70 cursor-not-allowed";
+      return "bg-red-600 text-white line-through opacity-80 cursor-not-allowed shadow-md";
     return "bg-green-500 hover:bg-green-600 text-white shadow-md hover:scale-105";
   };
 
@@ -127,20 +135,20 @@ export default function Step3_SelectDateTime({
             Không có khung giờ nào trong ngày này
           </p>
         ) : (
-          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-5">
+          <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-4">
             {timeSlots.map((time) => {
               const isBooked = bookedSlots.includes(time);
               return (
                 <button
                   key={time}
                   disabled={isBooked}
-                  onClick={() => setSelectedTime(time)}
-                  className={`py-6 px-4 rounded-3xl font-bold text-xl transition-all transform ${getSlotStatus(
+                  onClick={() => !isBooked && setSelectedTime(time)}
+                  className={`py-4 px-3 rounded-2xl font-bold text-lg transition-all transform ${getSlotStatus(
                     time
                   )} ${isBooked ? "cursor-not-allowed" : "cursor-pointer"}`}
                 >
                   {time}
-                  {isBooked && <p className="text-sm mt-2">Đã đặt</p>}
+                  {isBooked && <p className="text-xs mt-1 font-normal">Bận</p>}
                 </button>
               );
             })}

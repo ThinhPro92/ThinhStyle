@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Barber } from "../types/barber";
+import type { Barber, BarberWithBookingCount } from "../types/barber";
 
 interface BarberStore {
   isCreateOpen: boolean;
@@ -10,11 +10,11 @@ interface BarberStore {
   search: string;
   openCreate: () => void;
   closeCreate: () => void;
-  openEdit: (barber: Barber) => void;
-  openDetail: (barber: Barber) => void;
+  openEdit: (barber: BarberWithBookingCount) => void;
+  openDetail: (barber: BarberWithBookingCount) => void;
   closeDetail: () => void;
   closeEdit: () => void;
-  openDelete: (barber: Barber) => void;
+  openDelete: (barber: BarberWithBookingCount) => void;
   closeDelete: () => void;
   setSearch: (search: string) => void;
 }

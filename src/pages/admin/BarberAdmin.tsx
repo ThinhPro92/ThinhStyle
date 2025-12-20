@@ -14,18 +14,22 @@ import { QUERY_KEYS } from "../../constants/queryKeys";
 
 export default function BarberAdmin() {
   const { search } = useBarberStore();
+
   const { data: barbers = [] } = useQuery<Barber[]>({
     queryKey: QUERY_KEYS.BARBERS,
     queryFn: async () => {
       const res = await apiClient.get("/barber");
       return res.data.data;
     },
+    placeholderData: (previousData) => previousData,
   });
-  const filtered = barbers.filter(
+
+  const filteredBarbers = barbers.filter(
     (b: Barber) =>
       b.name.toLowerCase().includes(search.toLowerCase()) ||
       b.email?.toLowerCase().includes(search.toLowerCase())
   );
+
   return (
     <div className="min-h-screen bg-gray-950 text-white p-8">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -36,7 +40,7 @@ export default function BarberAdmin() {
           <ArrowLeft className="w-5 h-5" /> Quay lại Dashboard
         </Link>
         <BarbersHeader />
-        <BarbersGrid barbers={filtered} />
+        <BarbersGrid barbers={filteredBarbers} />
         <DetailBarberModal />
         <CreateBarberModal />
         <UpdateBarberModal />

@@ -1,12 +1,13 @@
 import { Routes, Route } from "react-router-dom";
 import BookingMain from "./BookingMain";
-import BookingSuccessPage from "./BookingSuccessPage";
+
+import VerifyOTPPage from "./VerifyOTPPage";
 
 export default function BookingPage() {
   return (
     <Routes>
       <Route path="/" element={<BookingMain />} />
-      <Route path="/success" element={<BookingSuccessPage />} />
+      <Route path="/verify-otp" element={<VerifyOTPPage />} />
     </Routes>
   );
 }

@@ -3,13 +3,15 @@ import toast from "react-hot-toast";
 import EmptyState from "./EmptyState";
 import BookingCard from "./BookingCard";
 import { useEffect } from "react";
-import type { BarberAdmin, BarberSocket, Booking } from "../../../types/barber";
+import type { BarberSocket } from "../../../types/barber";
 import { QUERY_KEYS } from "../../../constants/queryKeys";
 import apiClient from "../../../lib/apiClient";
+import type { StaffUser } from "../../../types/auth";
+import type { Booking } from "../../../types/booking";
 
 interface Props {
   socket: BarberSocket;
-  staffUser: BarberAdmin;
+  staffUser: StaffUser;
 }
 
 export default function BookingList({ socket, staffUser }: Props) {
@@ -31,7 +33,7 @@ export default function BookingList({ socket, staffUser }: Props) {
         QUERY_KEYS.BOOKINGS(staffUser._id),
         (old: Booking[] | undefined) => [b, ...(old || [])]
       );
-      toast.success(`Khách mới: ${b.customer.name} - ${b.time}`);
+      toast.success(`Khách mới: ${b.customerPhone} - ${b.time}`);
     };
 
     socket.on("newBooking", handleNewBooking);

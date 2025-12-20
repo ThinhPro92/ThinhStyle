@@ -21,7 +21,9 @@ export default function BarbersGrid({ barbers }: Props) {
       className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
     >
       {barbers.map((barber) => (
-        <BarberCard key={barber._id} barber={barber} />
+        <motion.div key={barber._id} layoutId={barber._id}>
+          <BarberCard barber={barber} />
+        </motion.div>
       ))}
     </motion.div>
   );

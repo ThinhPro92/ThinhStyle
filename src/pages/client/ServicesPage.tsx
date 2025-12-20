@@ -3,16 +3,7 @@ import { Clock, Star, Scissors } from "lucide-react";
 import { motion } from "framer-motion";
 import apiClient from "../../lib/apiClient";
 import { Link } from "react-router-dom";
-
-interface Service {
-  _id: string;
-  name: string;
-  price: number;
-  duration: number;
-  description?: string;
-  image?: string;
-  isActive: boolean;
-}
+import type { Service } from "../../types/service";
 
 export default function ServicesPage() {
   const { data: services = [], isLoading } = useQuery<Service[]>({

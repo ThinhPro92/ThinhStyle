@@ -1,10 +1,11 @@
-import { Phone, Calendar, ToggleLeft, ToggleRight } from "lucide-react";
+import { Calendar, ToggleLeft, ToggleRight } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import type { BarberAdmin, BarberSocket } from "../../../types/barber";
+import type { BarberSocket } from "../../../types/barber";
+import type { StaffUser } from "../../../types/auth";
 interface Props {
   socket: BarberSocket;
-  staffUser: BarberAdmin;
+  staffUser: StaffUser;
 }
 export default function BarberHeader({ socket, staffUser }: Props) {
   const [isOnline, setIsOnline] = useState(true);
@@ -41,9 +42,7 @@ export default function BarberHeader({ socket, staffUser }: Props) {
             )}
             {isOnline ? "Online" : "Offline"}
           </button>
-          <span className="flex items-center gap-2">
-            <Phone className="w-5 h-5" /> {staffUser.phone}
-          </span>
+
           <span className="flex items-center gap-2">
             <Calendar className="w-5 h-5" />{" "}
             {new Date().toLocaleDateString("vi-VN")}

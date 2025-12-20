@@ -10,7 +10,9 @@ export default function ServicesSection() {
     queryKey: QUERY_KEYS.SERVICES_HOME,
     queryFn: async () => {
       const res = await apiClient.get("/services");
-      return res.data.data.filter((s: Service) => s.isActive).slice(0, 6);
+
+      // ✅ Chỉ lấy 3 dịch vụ active
+      return res.data.data.filter((s: Service) => s.isActive).slice(0, 3);
     },
   });
 
@@ -26,6 +28,7 @@ export default function ServicesSection() {
           </p>
         </div>
 
+        {/* 3 dịch vụ / 1 hàng */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {services.map((service) => (
             <Link to="/services" key={service._id} className="group block">
@@ -43,12 +46,15 @@ export default function ServicesSection() {
                     </div>
                   )}
                 </div>
+
                 <div className="p-6">
                   <h3 className="text-2xl font-bold mb-2">{service.name}</h3>
+
                   <div className="flex items-center gap-2 text-orange-500 mb-3">
                     <Clock className="w-5 h-5" />
                     <span>{service.duration} phút</span>
                   </div>
+
                   <p className="text-3xl font-bold text-orange-600">
                     {service.price.toLocaleString()}đ
                   </p>

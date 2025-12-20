@@ -6,9 +6,9 @@ export interface Barber {
   email: string;
   phone: string;
   avatar?: string;
+  avatarPublicId?: string;
   description?: string;
   rating?: number;
-  commission: number;
   status: "active" | "inactive";
   totalRevenue: number;
   workingHours: Record<
@@ -36,19 +36,10 @@ export interface BarberAdmin {
   email: string;
   phone: string;
   avatar?: string;
-  commission: number;
   status: "active" | "inactive";
   totalRevenue: number;
 }
-
-export interface Booking {
-  _id: string;
-  customer: { name: string };
-  service: { name: string };
-  date: string;
-  time: string;
-  note?: string;
-  status: string;
+export interface BarberWithBookingCount extends Barber {
+  bookingCount?: number;
 }
-
 export type BarberSocket = Socket;

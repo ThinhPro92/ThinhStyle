@@ -1,20 +1,30 @@
-import { Plus } from "lucide-react";
+// src/features/service/components/CreateServiceModal.tsx
+import { Plus, X } from "lucide-react";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useServiceActions } from "../hooks/useServiceActions";
-import { useLayoutEffect, startTransition } from "react";
-import type { z } from "zod";
+import { useState } from "react";
 import { createServiceSchema } from "../../../validates/ServiceSchema";
+import type { z } from "zod";
 import { useServiceStore } from "../../../store/useServiceStore";
 import type { CreateServiceData } from "../../../types/service";
 
 type FormData = z.infer<typeof createServiceSchema>;
 
+type AvatarState = {
+  file: File | null;
+  preview: string;
+};
+
 export default function CreateServiceModal() {
-  const { isCreateOpen, closeCreate, form, setForm } = useServiceStore();
+  const { isCreateOpen, closeCreate } = useServiceStore();
   const { create } = useServiceActions();
+  const [avatar, setAvatar] = useState<AvatarState>({
+    file: null,
+    preview: "",
+  });
 
   const {
     register,
@@ -25,43 +35,42 @@ export default function CreateServiceModal() {
     resolver: zodResolver(createServiceSchema),
   });
 
-  useLayoutEffect(() => {
-    if (isCreateOpen) {
-      reset();
-      startTransition(() => {
-        setForm({
-          name: "",
-          price: 0,
-          duration: 30,
-          description: "",
-          image: "",
-          isActive: true,
-        });
-      });
-    }
-  }, [isCreateOpen, reset, setForm]);
-
   const uploadImage = async (file: File): Promise<string> => {
     const data = new FormData();
     data.append("file", file);
     data.append("upload_preset", "thinhstyle");
+    data.append("folder", "service");
     const res = await fetch(
-      "https://api.cloudinary.com/v1_1/dvzhf7x8t/image/upload",
+      "https://api.cloudinary.com/v1_1/dgap7lcbd/image/upload",
       {
         method: "POST",
         body: data,
       }
     );
     const json = await res.json();
+    if (!res.ok) throw new Error(json.error?.message || "Upload failed");
     return json.secure_url;
   };
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = async (data: FormData) => {
+    let imageUrl = "";
+    if (avatar.file) {
+      imageUrl = await uploadImage(avatar.file);
+    }
+
     const payload: CreateServiceData = {
       ...data,
-      image: form.image,
+      image: imageUrl,
     };
-    create.mutate(payload);
+
+    create.mutate(payload, {
+      onSuccess: () => {
+        reset();
+        setAvatar({ file: null, preview: "" });
+        closeCreate();
+      },
+      onError: () => toast.error("Lỗi khi thêm dịch vụ"),
+    });
   };
 
   if (!isCreateOpen) return null;
@@ -79,16 +88,25 @@ export default function CreateServiceModal() {
         className="bg-gradient-to-br from-gray-900 to-black border border-orange-500/50 rounded-2xl p-8 max-w-2xl w-full max-h-screen overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-orange-500 to-red-600 bg-clip-text text-transparent">
-          Thêm Dịch Vụ Mới
-        </h2>
+        <div className="flex justify-between items-center mb-8">
+          <h2 className="text-4xl font-bold bg-gradient-to-r from-orange-500 to-red-600 bg-clip-text text-transparent">
+            Thêm Dịch Vụ Mới
+          </h2>
+          <button
+            onClick={closeCreate}
+            aria-label="x"
+            className="p-3 hover:bg-white/10 rounded-xl transition"
+          >
+            <X className="w-8 h-8" />
+          </button>
+        </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="flex justify-center">
             <label className="cursor-pointer">
-              {form.image ? (
+              {avatar.preview ? (
                 <img
-                  src={form.image}
+                  src={avatar.preview}
                   alt="Preview"
                   className="w-48 h-48 rounded-xl object-cover border-4 border-orange-500"
                 />
@@ -101,11 +119,13 @@ export default function CreateServiceModal() {
                 type="file"
                 accept="image/*"
                 className="hidden"
-                onChange={async (e) => {
-                  if (e.target.files?.[0]) {
-                    const url = await uploadImage(e.target.files[0]);
-                    setForm({ image: url });
-                    toast.success("Upload ảnh thành công!");
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setAvatar({
+                      file,
+                      preview: URL.createObjectURL(file),
+                    });
                   }
                 }}
               />
@@ -115,7 +135,7 @@ export default function CreateServiceModal() {
           <input
             {...register("name")}
             placeholder="Tên dịch vụ *"
-            className="input-field"
+            className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none"
           />
           {errors.name && (
             <p className="text-red-500 text-sm">{errors.name.message}</p>
@@ -125,7 +145,7 @@ export default function CreateServiceModal() {
             {...register("price", { valueAsNumber: true })}
             type="number"
             placeholder="Giá (VNĐ) *"
-            className="input-field"
+            className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none"
           />
           {errors.price && (
             <p className="text-red-500 text-sm">{errors.price.message}</p>
@@ -135,7 +155,7 @@ export default function CreateServiceModal() {
             {...register("duration", { valueAsNumber: true })}
             type="number"
             placeholder="Thời gian (phút) *"
-            className="input-field"
+            className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none"
           />
           {errors.duration && (
             <p className="text-red-500 text-sm">{errors.duration.message}</p>
@@ -145,7 +165,7 @@ export default function CreateServiceModal() {
             {...register("description")}
             placeholder="Mô tả dịch vụ"
             rows={3}
-            className="input-field resize-none"
+            className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none resize-none"
           />
 
           <label className="flex items-center gap-3">

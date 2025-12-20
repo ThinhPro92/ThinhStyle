@@ -10,11 +10,6 @@ export const createBarberSchema = z.object({
     .regex(phoneRegex, "SĐT phải gồm 10 số và bắt đầu bằng số 0"),
   email: z.string().email().optional(),
   description: z.string().optional(),
-  commission: z
-    .number("Hoa hồng phải là số")
-    .min(0, "Hoa hồng tối thiểu 0%")
-    .max(100, "Hoa hồng tối đa 100%"),
-
   status: z.enum(["active", "inactive"]),
 });
 

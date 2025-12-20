@@ -4,4 +4,7 @@ export const cld = new Cloudinary({
   cloud: {
     cloudName: "dgap7lcbd",
   },
+  url: {
+    secure: true,
+  },
 });

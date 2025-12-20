@@ -4,20 +4,25 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useBarberStore } from "../../../../store/useBarberStore";
 import { useBarberActions } from "../../hooks/useBarberActions";
-import { startTransition, useLayoutEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { updateBarberSchema } from "../../../../validates/BarberSchema";
 import type { z } from "zod";
-import type { UpdateBarberData, WorkingHours } from "../../../../types/barber";
+import type { UpdateBarberData } from "../../../../types/barber";
 
 type FormData = z.infer<typeof updateBarberSchema>;
 
-const days = ["Chủ nhật", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7"];
+type AvatarState = {
+  file: File | null;
+  preview: string;
+};
 
 export default function UpdateBarberModal() {
   const { isEditOpen, closeEdit, selectedBarber } = useBarberStore();
   const { update } = useBarberActions();
-  const [avatar, setAvatar] = useState("");
-  const [workingHours, setWorkingHours] = useState<WorkingHours>({});
+  const [avatar, setAvatar] = useState<AvatarState>({
+    file: null,
+    preview: "",
+  });
 
   const {
     register,
@@ -28,47 +33,51 @@ export default function UpdateBarberModal() {
     resolver: zodResolver(updateBarberSchema),
   });
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if (selectedBarber && isEditOpen) {
       reset({
         name: selectedBarber.name,
         phone: selectedBarber.phone,
-        email: selectedBarber.email,
-        description: selectedBarber.description,
-        commission: selectedBarber.commission,
+        email: selectedBarber.email || "",
+        description: selectedBarber.description || "",
         status: selectedBarber.status,
-      });
-
-      startTransition(() => {
-        setAvatar(selectedBarber.avatar || "");
-        setWorkingHours(selectedBarber.workingHours || {});
       });
     }
   }, [selectedBarber, isEditOpen, reset]);
 
-  const uploadImage = async (file: File) => {
+  const uploadImage = async (file: File): Promise<string> => {
     const data = new FormData();
     data.append("file", file);
     data.append("upload_preset", "thinhstyle");
+    data.append("folder", "barber");
     const res = await fetch(
-      "https://api.cloudinary.com/v1_1/dvzhf7x8t/image/upload",
-      { method: "POST", body: data }
+      "https://api.cloudinary.com/v1_1/dgap7lcbd/image/upload",
+      {
+        method: "POST",
+        body: data,
+      }
     );
     const json = await res.json();
+    if (!res.ok) throw new Error(json.error?.message || "Upload failed");
     return json.secure_url;
   };
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = async (data: FormData) => {
+    let newAvatar = avatar.preview;
+
+    if (avatar.file) {
+      newAvatar = await uploadImage(avatar.file);
+    }
+
     const payload: UpdateBarberData = {
       ...data,
-      avatar,
-      workingHours,
+      avatar: newAvatar,
     };
-    update.mutate({
-      id: selectedBarber!._id,
-      data: payload,
-    });
+
+    update.mutate({ id: selectedBarber!._id, data: payload });
   };
+
+  const isObjectUrl = avatar.preview.startsWith("blob:");
 
   if (!isEditOpen || !selectedBarber) return null;
 
@@ -91,12 +100,13 @@ export default function UpdateBarberModal() {
           </h2>
           <button
             onClick={closeEdit}
+            aria-label="X"
             className="p-3 hover:bg-white/10 rounded-xl"
           >
-            {}
             <X className="w-7 h-7" />
           </button>
         </div>
+
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="grid lg:grid-cols-2 gap-8"
@@ -104,12 +114,20 @@ export default function UpdateBarberModal() {
           <div className="space-y-6">
             <div className="flex justify-center">
               <label className="cursor-pointer">
-                {avatar ? (
-                  <img
-                    src={avatar}
-                    className="w-40 h-40 rounded-full object-cover border-4 border-orange-500"
-                    alt="haha"
-                  />
+                {avatar.preview ? (
+                  isObjectUrl ? (
+                    <img
+                      src={avatar.preview}
+                      alt="Avatar preview"
+                      className="w-40 h-40 rounded-full object-cover border-4 border-orange-500"
+                    />
+                  ) : (
+                    <img
+                      src={avatar.preview}
+                      alt="Avatar"
+                      className="w-40 h-40 rounded-full object-cover border-4 border-orange-500"
+                    />
+                  )
                 ) : (
                   <div className="w-40 h-40 bg-gray-800 rounded-full border-4 border-dashed border-orange-500 flex items-center justify-center text-6xl">
                     +
@@ -118,14 +136,20 @@ export default function UpdateBarberModal() {
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={async (e) =>
-                    e.target.files?.[0] &&
-                    setAvatar(await uploadImage(e.target.files[0]))
-                  }
                   className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setAvatar({
+                        file,
+                        preview: URL.createObjectURL(file),
+                      });
+                    }
+                  }}
                 />
               </label>
             </div>
+
             <input
               {...register("name")}
               placeholder="Họ tên"
@@ -149,9 +173,6 @@ export default function UpdateBarberModal() {
               placeholder="Email"
               className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none"
             />
-            {errors.email && (
-              <p className="text-red-500">{errors.email.message}</p>
-            )}
 
             <textarea
               {...register("description")}
@@ -160,17 +181,6 @@ export default function UpdateBarberModal() {
               className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none"
             />
 
-            <div className="flex items-center justify-between">
-              <span>Hoa hồng (%)</span>
-              <input
-                type="number"
-                {...register("commission", { valueAsNumber: true })}
-                className="w-24 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-center"
-              />
-              {errors.commission && (
-                <p className="text-red-500">{errors.commission.message}</p>
-              )}
-            </div>
             <div className="flex items-center justify-between">
               <span>Trạng thái</span>
               <select
@@ -182,61 +192,11 @@ export default function UpdateBarberModal() {
               </select>
             </div>
           </div>
-          <div>
-            <h3 className="text-xl font-bold mb-4">Giờ làm việc</h3>
-            <div className="space-y-3">
-              {Object.keys(workingHours).map((day) => (
-                <div key={day} className="flex items-center gap-4">
-                  <span className="w-24 text-sm">{days[+day]}</span>
-                  <input
-                    type="checkbox"
-                    aria-label={`Trạng thái làm việc ngày ${days[+day]}`}
-                    checked={workingHours[day].isWorking}
-                    onChange={(e) =>
-                      setWorkingHours((prev) => ({
-                        ...prev,
-                        [day]: { ...prev[day], isWorking: e.target.checked },
-                      }))
-                    }
-                    className="w-5 h-5"
-                  />
-                  {workingHours[day].isWorking && (
-                    <>
-                      <input
-                        type="time"
-                        aria-label={`Giờ bắt đầu ${days[+day]}`}
-                        value={workingHours[day].start || "09:00"}
-                        onChange={(e) =>
-                          setWorkingHours((prev) => ({
-                            ...prev,
-                            [day]: { ...prev[day], start: e.target.value },
-                          }))
-                        }
-                        className="px-3 py-2 bg-gray-800 rounded"
-                      />
-                      <span>-</span>
-                      <input
-                        type="time"
-                        aria-label={`Giờ kết thúc ${days[+day]}`}
-                        value={workingHours[day].end || "21:00"}
-                        onChange={(e) =>
-                          setWorkingHours((prev) => ({
-                            ...prev,
-                            [day]: { ...prev[day], end: e.target.value },
-                          }))
-                        }
-                        className="px-3 py-2 bg-gray-800 rounded"
-                      />
-                    </>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
+
           <button
             type="submit"
             disabled={update.isPending}
-            className="w-full mt-8 bg-gradient-to-r from-orange-500 to-red-600 py-5 rounded-xl font-bold text-xl hover:scale-105 transition"
+            className="col-span-full bg-gradient-to-r from-orange-500 to-red-600 py-4 rounded-xl font-bold text-lg hover:scale-105 transition disabled:opacity-50"
           >
             {update.isPending ? "Đang cập nhật..." : "Cập Nhật Ngay"}
           </button>

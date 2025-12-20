@@ -17,6 +17,7 @@ export interface ConfirmedBookingData
   extends Required<Pick<BookingData, "barber" | "services" | "date" | "time">> {
   totalPrice: number;
   bookingCode?: string;
+  status: "pending" | "confirmed" | "cancelled" | "completed" | "rejected";
 }
 
 export interface StepProps<T = Partial<BookingData>> {
@@ -43,24 +44,30 @@ export interface CreateBookingPayload {
   serviceIds: string[];
   date: string;
   startTime: string;
+  customerName: string;
+  customerPhone: string;
   note?: string;
   paymentStatus?: PaymentStatus;
+  status?: ConfirmedBookingData["status"];
+  type?: "online" | "walk_in";
 }
 
 export type UpdateBookingData = Partial<
   Omit<CreateBookingPayload, "paymentStatus">
->;
+> & { status?: ConfirmedBookingData["status"] };
 
 export interface Booking {
   _id: string;
-  barber: { _id: string; name: string };
+  barberId?: string;
+  serviceIds?: string[];
   customerName: string;
   customerPhone: string;
-  service: { _id: string; name: string; price: number };
   date: string;
+  startTime: string;
   time: string;
   note?: string;
-  status: "pending" | "accepted" | "completed" | "rejected" | "cancelled";
+  status: "pending" | "confirmed" | "cancelled" | "completed" | "rejected";
   bookingCode: string;
+  type?: "online" | "walk_in";
   createdAt: string;
 }

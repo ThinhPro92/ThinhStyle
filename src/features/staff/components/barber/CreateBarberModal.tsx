@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useBarberStore } from "../../../../store/useBarberStore";
 import { useBarberActions } from "../../hooks/useBarberActions";
-import { startTransition, useLayoutEffect, useState } from "react";
+import { useState, useCallback } from "react";
 import { createBarberSchema } from "../../../../validates/BarberSchema";
 import type { z } from "zod";
 import type { CreateBarberData, WorkingHours } from "../../../../types/barber";
@@ -22,16 +22,34 @@ const defaultWorkingHours: WorkingHours = {
 
 type FormData = z.infer<typeof createBarberSchema>;
 
+type AvatarState = {
+  file: File | null;
+  preview: string;
+};
+
+type CloudinaryUploadResult = {
+  secure_url: string;
+  public_id: string;
+};
+
+type CreateBarberPayload = CreateBarberData & {
+  avatarPublicId?: string;
+};
+
 export default function CreateBarberModal() {
   const { isCreateOpen, closeCreate } = useBarberStore();
   const { create } = useBarberActions();
-  const [avatar, setAvatar] = useState("");
+
+  const [avatar, setAvatar] = useState<AvatarState>({
+    file: null,
+    preview: "",
+  });
 
   const {
     register,
     handleSubmit,
-    formState: { errors },
     reset,
+    formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(createBarberSchema),
     defaultValues: {
@@ -39,52 +57,72 @@ export default function CreateBarberModal() {
       phone: "",
       email: "",
       description: "",
-      commission: 40,
       status: "active",
     },
   });
 
-  useLayoutEffect(() => {
-    if (isCreateOpen) {
-      reset();
-      startTransition(() => {
-        setAvatar("");
-      });
-    }
-  }, [isCreateOpen, reset]);
-
-  const uploadImage = async (file: File): Promise<string> => {
+  const uploadImage = useCallback(async (file: File) => {
     const data = new FormData();
     data.append("file", file);
     data.append("upload_preset", "thinhstyle");
+    data.append("folder", "barber");
+
     const res = await fetch(
       "https://api.cloudinary.com/v1_1/dgap7lcbd/image/upload",
-      { method: "POST", body: data }
+      {
+        method: "POST",
+        body: data,
+      }
     );
-    const json = await res.json();
-    return json.secure_url;
-  };
+
+    const json: CloudinaryUploadResult & {
+      error?: { message: string };
+    } = await res.json();
+
+    if (!res.ok) {
+      throw new Error(json.error?.message || "Upload failed");
+    }
+
+    return {
+      url: json.secure_url,
+      publicId: json.public_id,
+    };
+  }, []);
 
   const onSubmit = async (data: FormData) => {
-    const payload: CreateBarberData = {
-      ...data,
-      avatar,
-      workingHours: defaultWorkingHours,
-      rating: 0,
-      totalRevenue: 0,
-      role: "barber",
-      password: "123456",
-      email: data.email || "",
-    };
-    const safeWorkingHours = Object.fromEntries(
-      Object.entries(defaultWorkingHours).map(([key, value]) => [
-        String(key),
-        value,
-      ])
-    );
-    console.log("Payload gửi đi:", payload);
-    toast.success("Tạo thợ thành công! Mật khẩu: 123456", { duration: 10000 });
-    create.mutate({ ...payload, workingHours: safeWorkingHours });
+    try {
+      let avatarUrl = "";
+      let avatarPublicId: string | undefined;
+
+      if (avatar.file) {
+        const uploaded = await uploadImage(avatar.file);
+        avatarUrl = uploaded.url;
+        avatarPublicId = uploaded.publicId;
+      }
+
+      const payload: CreateBarberPayload = {
+        ...data,
+        password: "123456",
+        avatar: avatarUrl,
+        avatarPublicId,
+        workingHours: defaultWorkingHours,
+        rating: 0,
+        totalRevenue: 0,
+        role: "barber",
+        email: data.email || "",
+      };
+
+      create.mutate(payload, {
+        onSuccess: () => {
+          reset();
+          setAvatar({ file: null, preview: "" });
+          closeCreate();
+        },
+      });
+    } catch (err) {
+      console.log(err);
+      toast.error("Có lỗi khi tạo thợ");
+    }
   };
 
   if (!isCreateOpen) return null;
@@ -108,7 +146,7 @@ export default function CreateBarberModal() {
           </h2>
           <button
             onClick={closeCreate}
-            aria-label="X"
+            aria-label="Đóng"
             className="p-3 hover:bg-white/10 rounded-xl transition"
           >
             <X className="w-8 h-8" />
@@ -118,10 +156,10 @@ export default function CreateBarberModal() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="flex justify-center">
             <label className="cursor-pointer">
-              {avatar ? (
+              {avatar.preview ? (
                 <img
-                  src={avatar}
-                  alt="Avatar"
+                  src={avatar.preview}
+                  alt="Avatar preview"
                   className="w-32 h-32 rounded-full object-cover border-4 border-orange-500"
                 />
               ) : (
@@ -133,11 +171,14 @@ export default function CreateBarberModal() {
                 type="file"
                 accept="image/*"
                 className="hidden"
-                onChange={async (e) => {
-                  if (e.target.files?.[0]) {
-                    const url = await uploadImage(e.target.files[0]);
-                    setAvatar(url);
-                  }
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+
+                  setAvatar({
+                    file,
+                    preview: URL.createObjectURL(file),
+                  });
                 }}
               />
             </label>
@@ -174,22 +215,11 @@ export default function CreateBarberModal() {
             className="w-full px-6 py-4 bg-gray-800/50 border border-gray-700 rounded-xl focus:border-orange-500 outline-none resize-none"
           />
 
-          <div className="flex items-center justify-between">
-            <span>Hoa hồng (%)</span>
-            <input
-              type="number"
-              {...register("commission", { valueAsNumber: true })}
-              className="w-24 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-center"
-            />
-          </div>
-          {errors.commission && (
-            <p className="text-red-500 text-sm">{errors.commission.message}</p>
-          )}
-
           <button
             type="submit"
             disabled={create.isPending}
-            className="w-full bg-gradient-to-r from-orange-500 to-red-600 py-5 rounded-xl font-bold text-xl hover:scale-105 transition disabled:opacity-50"
+            className="w-full bg-gradient-to-r from-orange-500 to-red-600 py-5 rounded-xl font-bold text-xl transition
+             disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {create.isPending ? "Đang tạo..." : "Tạo Ngay"}
           </button>

@@ -20,7 +20,6 @@ interface ServiceForm {
 }
 
 interface ServiceStore {
-  // Modal state
   isCreateOpen: boolean;
   isEditOpen: boolean;
   isDeleteOpen: boolean;

@@ -24,11 +24,10 @@ export default function ServiceCard({ service }: Props) {
           className="w-full h-48 object-cover"
         />
       ) : (
-        <div className="w-full h-48 bg-gray-800 flex items-center justify-center">
-          <span className="text-6xl text-gray-600">Scissors</span>
+        <div className="w-full h-48 bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center">
+          <span className="text-6xl text-white/30">✂️</span>
         </div>
       )}
-
       <div className="p-6">
         <h3 className="text-2xl font-bold mb-2">{service.name}</h3>
         <p className="text-orange-400 text-3xl font-bold mb-2">
@@ -41,7 +40,6 @@ export default function ServiceCard({ service }: Props) {
         <p className="text-gray-400 text-sm line-clamp-2">
           {service.description || "Chưa có mô tả"}
         </p>
-
         <div className="flex justify-between items-center mt-6">
           <span
             className={`px-3 py-1 rounded-full text-sm font-medium ${
@@ -52,19 +50,18 @@ export default function ServiceCard({ service }: Props) {
           >
             {service.isActive ? "Đang bán" : "Tạm ẩn"}
           </span>
-
           <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition">
             <button
               onClick={() => openEdit(service)}
+              aria-label="Edit"
               className="p-3 bg-blue-500/20 hover:bg-blue-500/40 rounded-xl transition"
-              aria-label="Sửa dịch vụ"
             >
               <Edit className="w-5 h-5" />
             </button>
             <button
               onClick={() => openDelete(service)}
+              aria-label="Trash2"
               className="p-3 bg-red-500/20 hover:bg-red-500/40 rounded-xl transition"
-              aria-label="Xóa dịch vụ"
             >
               <Trash2 className="w-5 h-5" />
             </button>

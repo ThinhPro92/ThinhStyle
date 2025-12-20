@@ -2,10 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import type { StaffUser } from "../../../../types/auth";
 import { useStaffStore } from "../../../../store/useStaffStore";
-
+import apiClient from "../../../../lib/apiClient";
 interface AuthData {
   user: StaffUser;
-  token: string;
 }
 
 export const useStaffAuthAdmin = () => {
@@ -13,25 +12,13 @@ export const useStaffAuthAdmin = () => {
 
   const query = useQuery<AuthData, Error>({
     queryKey: ["staffAuth"],
-    queryFn: () => {
+    queryFn: async () => {
       const token = localStorage.getItem("staffToken");
-      const role = localStorage.getItem("staffRole");
-      const id = localStorage.getItem("staffId");
-      const name = localStorage.getItem("staffName");
+      if (!token) throw new Error("Unauthenticated");
 
-      if (!token || !role || !id || (role !== "admin" && role !== "barber")) {
-        throw new Error("Unauthenticated");
-      }
-
-      return {
-        user: {
-          _id: id,
-          name: name || "Staff",
-          email: "staff@thinhstyle.com",
-          role: role as "admin" | "barber",
-        },
-        token,
-      };
+      apiClient.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      const res = await apiClient.get("/auth/staff/verify");
+      return res.data as AuthData;
     },
     staleTime: Infinity,
     retry: false,
@@ -39,7 +26,7 @@ export const useStaffAuthAdmin = () => {
 
   useEffect(() => {
     if (query.data) {
-      login(query.data.user, query.data.token);
+      login(query.data.user, localStorage.getItem("staffToken") || "");
     } else if (query.error) {
       logout();
     }

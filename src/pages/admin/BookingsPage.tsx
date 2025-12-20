@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import BookingCalendar from "../../features/booking/admin/BookingCalendar";
 import BookingList from "../../features/booking/admin/BookingList";
 import CreateBookingModal from "../../features/booking/admin/CreateBookingModal";
-import EditBookingModal from "../../features/booking/admin/EditBookingModal";
+import EditBookingModal from "../../features/booking/admin/EditBookingModal.tsx";
 import DeleteBookingModal from "../../features/booking/admin/DeleteBookingModal";
 import { useBookingAdminStore } from "../../store/useBookingAdminStore";
 
@@ -13,7 +13,6 @@ export default function BookingsPage() {
   return (
     <div className="min-h-screen bg-gray-950 text-white p-8">
       <div className="max-w-7xl mx-auto space-y-8">
-        {/* Nút quay lại */}
         <Link
           to="/admin/dashboard"
           className="inline-flex items-center gap-2 text-orange-400 hover:text-orange-300 transition mb-4"

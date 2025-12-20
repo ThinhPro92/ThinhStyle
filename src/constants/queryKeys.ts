@@ -1,7 +1,11 @@
 export const QUERY_KEYS = {
   BARBERS: ["barbers"],
-  BOOKINGS: (id?: string) => (id ? ["bookings", id] : ["bookings"]),
-  HISTORY: (id: string) => ["history", id],
+  BOOKINGS: (params?: {
+    customerPhone?: string;
+    customerPhone_like?: string;
+    status?: string;
+  }) => ["bookings", params],
+
   // Services
   SERVICES: ["services"],
   SERVICES_HOME: ["services-home"],

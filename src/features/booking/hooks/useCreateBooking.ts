@@ -1,19 +1,40 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
+import { useMutation } from "@tanstack/react-query";
 import apiClient from "../../../lib/apiClient";
-import type { CreateBookingPayload } from "../../../types/booking";
-import { QUERY_KEYS } from "../../../constants/queryKeys";
+import toast from "react-hot-toast";
+
+type CreateBookingPayload = {
+  barberId: string;
+  serviceIds: string[];
+  date: string;
+  startTime: string;
+  customerName: string;
+  customerPhone: string;
+  note?: string;
+  type?: "online" | "offline";
+};
+
+const normalizePhone = (phone: string) => {
+  return phone
+    .replace(/\D/g, "") // bỏ ký tự không phải số
+    .replace(/^84/, "0") // +84 -> 0
+    .trim();
+};
 
 export const useCreateBooking = () => {
-  const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: (data: CreateBookingPayload) =>
-      apiClient.post("/bookings", data),
-    onSuccess: (res) => {
-      toast.success(`Đặt lịch thành công! Mã: ${res.data.bookingCode}`);
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.BOOKINGS() });
+    mutationFn: async (payload: CreateBookingPayload) => {
+      const res = await apiClient.post("/bookings", {
+        ...payload,
+        customerPhone: normalizePhone(payload.customerPhone),
+        type: payload.type ?? "online",
+      });
+      return res.data;
     },
-    onError: () => toast.error("Đặt lịch thất bại"),
+    onSuccess: () => {
+      toast.success("Đặt lịch thành công 🎉");
+    },
+    onError: () => {
+      toast.error("Đặt lịch thất bại");
+    },
   });
 };

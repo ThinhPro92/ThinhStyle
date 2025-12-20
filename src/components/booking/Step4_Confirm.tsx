@@ -3,42 +3,53 @@ import { useCreateBooking } from "../../features/booking/hooks/useCreateBooking"
 import { Button } from "../ui/button";
 import type { Step4Props } from "../../types/booking";
 import toast from "react-hot-toast";
+import { useQueryClient } from "@tanstack/react-query";
+import { QUERY_KEYS } from "../../constants/queryKeys";
+import { useCustomerStore } from "../../store/useCustomerStore";
 import { useNavigate } from "react-router-dom";
 
-function generateBookingCode(date: Date) {
-  return `THS-${format(date, "ddMMyy")}-${Math.floor(
-    Math.random() * 9000 + 1000
-  )}`;
-}
+const normalizePhone = (phone: string) =>
+  phone.replace(/\D/g, "").replace(/^84/, "0").trim();
 
 export default function Step4_Confirm({ bookingData, onPrev }: Step4Props) {
   const { mutate: createBooking, isPending } = useCreateBooking();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { user } = useCustomerStore();
 
   const handleConfirm = () => {
+    if (!user?.phone) {
+      toast.error("Bạn chưa đăng nhập");
+      return;
+    }
+
     const payload = {
       barberId: bookingData.barber._id,
       serviceIds: bookingData.services.map((s) => s._id),
       date: format(bookingData.date, "yyyy-MM-dd"),
       startTime: bookingData.time,
       note: "Khách đặt online từ ThinhStyle",
+      type: "online" as const,
+
+      customerName: user.name ?? "Khách online",
+      customerPhone: normalizePhone(user.phone),
+
+      status: "pending" as const,
     };
 
     createBooking(payload, {
-      onSuccess: (res) => {
-        const code =
-          res.data?.bookingCode ?? generateBookingCode(bookingData.date);
-
-        navigate("/booking/success", {
-          state: {
-            bookingCode: code,
-            barberName: bookingData.barber.name,
-            serviceNames: bookingData.services.map((s) => s.name),
-            date: bookingData.date,
-            time: bookingData.time,
-            totalPrice: bookingData.totalPrice,
-          },
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: QUERY_KEYS.BOOKINGS({
+            customerPhone_like: normalizePhone(user.phone),
+          }),
         });
+
+        queryClient.invalidateQueries({
+          queryKey: QUERY_KEYS.BOOKINGS(),
+        });
+
+        navigate("/profile/history");
       },
       onError: () => toast.error("Đặt lịch thất bại"),
     });

@@ -18,4 +18,8 @@ export const createBookingSchema = z.object({
     .regex(phoneRegex, "SĐT phải gồm 10 số và bắt đầu bằng số 0"),
 });
 
-export const updateBookingSchema = createBookingSchema.partial();
+export const updateBookingSchema = createBookingSchema.partial().extend({
+  status: z
+    .enum(["pending", "confirmed", "cancelled", "completed", "rejected"])
+    .optional(), // ← Add status
+});

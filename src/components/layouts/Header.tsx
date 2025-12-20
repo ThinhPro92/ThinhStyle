@@ -11,7 +11,10 @@ export default function Header() {
   const [openPhoneModal, setOpenPhoneModal] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { user, isAuthenticated, logout } = useCustomerStore();
-  const displayName = user?.name || user?.phone || "Khách";
+
+  const displayName =
+    user?.name || (user?.phone ? `0${user.phone.slice(-9)}` : "Khách"); // Format phone đẹp
+
   return (
     <header className="bg-header text-white sticky top-0 z-50 shadow-lg">
       <div className="container mx-auto px-4">
@@ -25,6 +28,7 @@ export default function Header() {
               <p className="text-xs text-text-muted -mt-1">Cắt Là Sướng</p>
             </div>
           </Link>
+
           <nav className="hidden lg:flex items-center space-x-8">
             <Link to="/" className="hover:text-accent transition">
               Trang chủ
@@ -42,11 +46,13 @@ export default function Header() {
               Về chúng tôi
             </Link>
           </nav>
+
           <div className="flex items-center space-x-4">
             <div className="hidden md:flex items-center space-x-2 text-sm">
               <Phone className="w-4 h-4" />
               <span>090 303 9559</span>
             </div>
+
             {isAuthenticated ? (
               <div className="relative">
                 <button
@@ -94,7 +100,9 @@ export default function Header() {
                 Đặt lịch ngay
               </Button>
             )}
+
             <ThemeToggle />
+
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="lg:hidden"
@@ -104,6 +112,7 @@ export default function Header() {
             </button>
           </div>
         </div>
+
         {mobileMenuOpen && (
           <div className="lg:hidden py-4 border-t border-slate-800">
             <nav className="flex flex-col space-y-4">
@@ -151,6 +160,7 @@ export default function Header() {
             </nav>
           </div>
         )}
+
         <PhoneModal
           isOpen={openPhoneModal}
           onClose={() => setOpenPhoneModal(false)}
